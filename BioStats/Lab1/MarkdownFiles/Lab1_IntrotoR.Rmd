@@ -3,9 +3,9 @@ title: 'Lab 1: Introduction to R'
 author: "Jackson Anderson"
 date: "August 27, 2020"
 output:
+  pdf_document: default
   html_document:
     df_print: paged
-  pdf_document: default
 subtitle: Introduction to R, Summary Statistics of Data
 ---
 ```{r}
@@ -349,7 +349,7 @@ A good shortcut to see the files currently in your working directory, is to go t
 Read in Pelts.csv and save it as an object.
 
 ```{r}
-peltsDat <- read_csv("/Users/jacksonanderson/School/BioStats/Lab1/Data/Pelts.csv")
+peltsDat <- read_csv("/cloud/project/BioStats/Lab1/Data/Pelts.csv")
 #was having trouble setting my working directory and then calling the csv using a code chunk, so I just used the path name
 
 ```
