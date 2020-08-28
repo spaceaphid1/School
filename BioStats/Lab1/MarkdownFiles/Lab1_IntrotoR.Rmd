@@ -401,7 +401,6 @@ head(df)
 You will turn in your biometry assignments in as both an .Rmd document (like the one you are currently working in) and a PDF. The PDF version is a nicely formatted document which will display results and graphics. The process of making the PDF version is called "knitting". Try kitting the current document by hitting the icon that says "knit" in the menu bar above, or choosing "knit document" from the File menu.
 
 
-
 If there are errors in your code, the knitting process does not work. If you get an error message, navigate to the line listed and de-bug the code. 
 
 Still not working? If you are at the end of your rope and cannot fix broken code (and you've already tried meeting with your TA!), you may "comment out" the line that does not work using a # before the line of code, and then knit the PDF.
