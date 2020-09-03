@@ -1,11 +1,17 @@
 
 ---
 title: "Lab 2: Presidents"
-author: "Your Name Here"
-date: "Enter date here"
+author: "Jackson"
+date: "September 3, 2020"
 output: pdf_document
 subtitle: Sampling, plotting, descriptive statistics
 ---
+```{r}
+# loading packages
+library(ggplot2)
+library(tidyverse)
+
+```
 
 # General information
 This lab is due September 9th by 11:59 pm. You must upload your .rmd file and your knitted PDF to the assignment page on Canvas. This lab is worth 10 points. You are welcome and encouraged to talk with classmates and ask for help. However, each student should turn in their own lab assignment and all answers, including all code, needs to be solely your own.
@@ -25,9 +31,9 @@ Last week, each student wrote down the first two presidents they could think of.
 \textcolor{red}{\textbf{Question 1 (0.5 points)}: Read in your data and save it as an object named `President.Sample'. Print out the first few rows using the $head()$ function. Make sure your data looks correct and has header labels.}
 ```{r}
 # read in your data and name it President.Sample
-
+President.Sample <- class_president_sample_2020
 # print off the first few rows
-
+head(President.Sample)
 ```
 
 Although Excel can be a good way of organizing your data, learning how to manipulate your data within R is an important skill, and one we'll work on throughout the semester. Let's go through a few common tasks you may encounter while organizing your data.
@@ -69,9 +75,9 @@ Now, you should add, and then delete, a column to our dataframe, called "gender"
 
 ```{r}
 # add a new column, called "gender", with the gender of each president
-
+President.Sample$Gender <- "Male"
 # now delete it
-
+President.Sample$Gender <- NULL
 ```
 
 
@@ -87,7 +93,8 @@ Print out myvector and myvector2. How was the -1 calculation applied?
 \textcolor{red}{\textbf{Question 3 (0.5 points)}: Create a new column, giving the heights of each president in inches, rather than cm. Name this column "HeightIn".}
 ```{r}
 # your code here
-
+President.Sample$HeightIn <- President.Sample$HeightCm / 2.54
+head(President.Sample)
 ```
 
 ## Data clean up
@@ -140,6 +147,11 @@ R has several built-in functions to calculate mean (*mean*), standard deviation 
 
 ```{r}
 # your code here
+meanHeight <- mean(Pres.Samp.3$HeightIn)
+medianHeight <- median(Pres.Samp.3$HeightIn)
+sdHeight <- sqrt(sum((Pres.Samp.3$HeightIn-mean(Pres.Samp.3$HeightIn))^2/(length(Pres.Samp.3$HeightIn)-1))) 
+minHeight <- min(Pres.Samp.3$HeightIn)
+maxHeight <- max(Pres.Samp.3$HeightIn)
 ```
 
 What if we want to know something specific about our dataset, for example: who is the tallest president? We can use the *which* argument in R. 
@@ -166,9 +178,13 @@ Pres.Samp.3[tallest, ]
 
 ```{r}
 # your code here
+shortest <- which(Pres.Samp.3$HeightIn == min(Pres.Samp.3$HeightIn))
+Pres.Samp.3[shortest,]
 ```
 
-*Your answer here* 
+*Your answer here: Martin Van Burne, 66.142 Inches tall* 
+
+
 
 The `which()` function is not the most intuitive, so don't worry too much if you do not completely understand how to use it. It is a great tool for extracting data but it's not crucial for the rest of the lab assignment. I just want you to get used to seeing it.
 
@@ -193,9 +209,12 @@ Now let's compare our sample mean (our estimate) to the true population mean (th
 **Read in the dataset, "presidential_heights.csv", posted to D2L**. Make sure you name the dataframe something distinct from your class dataset.
 ```{r}
 # read in the .csv file containing all the presidents
-
+presDat <- presidential_heights
 # explore your data: how many rows, columns? What type of data does it include?
-
+str(presDat)
+#Number of Rows: 44
+#Number of Columns: 3
+#Data Types: Character (Name), Numeric (Height and Inaug. Year)
 ```
 
 Before we compare our sample of presidents to the real population of presidents, let's practice making some histograms.
@@ -226,7 +245,7 @@ In the above code, change the -10 to -50 and the 60 to 100. What happens?
 Change the "Carbon Uptake" to some other text. What happens?
 
 ```{r, fig.width=3, fig.height=3}
-hist(CO2$uptake, xlab="uptake", ylab="count",col="blue") 
+hist(CO2$uptake, xlab="Hours of Drake Listened To", ylab="Number Involuntary Dabs done During Class",col="darkslategrey", main = "How Hype Does Drake Make You?") 
 ```
 
 Practice changing the "uptake", "count", and color arguments. 
@@ -246,14 +265,21 @@ The command `par`, used above, allows you to set a number of graphical parameter
 \textcolor{red}{\textbf{Question 9 (1 point):} Now visually compare the height (in inches) of sampled presidents vs. the true population. Create a two paneled figure with a histogram of the sampled presidents on the top row and full president population on the bottom row. To better visually compare the distributions, make sure they have the same xlim scale. You should modify things like: label axes, titles, or color as shown above to improve readability.}
 
 ```{r,fig.width=6, fig.height=6}
-# your code here 
+{par(mfrow=c(2,1))
+hist(Pres.Samp.3$HeightIn, main="Sampled Presidential Heights")
+hist(presidential_heights$Height, main="True Presidential Heights")
+par(mfrow=c(1,1))}
 ```
 
 \textcolor{red}{\textbf{Question 10 (1 point):} Calculate the mean, median, and standard deviation of height in the full presidents dataset. Compare these to the estimates you found in Question 4.}
 
 ```{r}
 # Your code here
-
+meanHeight_p <- mean(presidential_heights$Height)
+medianHeight_p <- median(presidential_heights$Height)
+sdHeight_p <- sqrt(sum((presidential_heights$Height-mean(presidential_heights$Height))^2/(length(presidential_heights$Height)-1))) 
+minHeight_p <- min(presidential_heights$Height)
+maxHeight_p <- max(presidential_heights$Height)
 ```
 
 # Sampling Distributions
@@ -278,7 +304,7 @@ simulatedmean1<-mean(simulatedsample1); simulatedsd1<-sd(simulatedsample1)
 simulatedmeans<-rep(NA,1000) 
 # repeat the process we did above 1000 times
 # each time we put the mean of the random sample we drew into our empty vectors
-for (i in 1:1000){
+for (i in 1:length(simulatedmeans)){
   random.indices<-sample(1:length(FullPres.Heights), 25, replace=FALSE)
   sim.sample<-FullPres.Heights[random.indices]
   sim.mean<-mean(sim.sample)
@@ -331,7 +357,13 @@ Remember, to calculate standard error, you will use the *sample* standard deviat
 \textcolor{red}{\textbf{Question 12 (1 point):} Using functions in R (rather than raw numbers), calculate the mean, standard deviation, and standard error of black cherry tree girth from the sample data in `trees`. Save them as variables and print them. Hint: use the length() or nrow() function to find the sample size of this dataset.}
 
 ```{r}
-# your code here
+girthMean <- mean(trees$Girth)
+girthMean
+girthSD <- sd(trees$Girth)
+girthSD
+girthSE <- girthSD / sqrt(length(trees$Girth))
+girthSE
+
 ```
 
 \textcolor{red}{\textbf{Question 13 (1 point):} How would increasing the sample size change our estimate of standard error? How would increasing the sample size change our estimate of the mean girth (x-bar)?}
