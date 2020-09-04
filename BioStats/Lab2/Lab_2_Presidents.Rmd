@@ -31,7 +31,7 @@ Last week, each student wrote down the first two presidents they could think of.
 \textcolor{red}{\textbf{Question 1 (0.5 points)}: Read in your data and save it as an object named `President.Sample'. Print out the first few rows using the $head()$ function. Make sure your data looks correct and has header labels.}
 ```{r}
 # read in your data and name it President.Sample
-President.Sample <- class_president_sample_2020
+President.Sample <- read.csv("/home/rstudio/Repos/School/BioStats/Lab2/class_president_sample_2020.csv")
 # print off the first few rows
 head(President.Sample)
 ```
@@ -193,23 +193,23 @@ Last week, we sampled presidents and I measured (via Wikipedia) their heights. S
 
 \textcolor{red}{\textbf{Question 6 (0.5 point)}: Is our class sample a random sample? Why or why not?}
 
-*Your answer here*
+*When we sampled presidents last week, it was not truly random. Though we were told to "randomly" pick two presidents, there was no procedure practiced by those choosing said presidents that factored out bias*
 
 \textcolor{red}{\textbf{Question 7 (0.5 point)}: Are our data points independent? Why or why not?}
 
-*Your answer here*
+*Not really sure what this question is referring to. I would say that no, our data was not independent. This is due to the fact that the presidents we selected could have depended on a number of factors that affected how a person chose a name; some may have had a unconscious predilection that favored last names that started with A, and thus they might have chosen presidents whose last names started with A. However, each person's biases could, in theory, be different enough such that each of their samples was independant from another persons.*
 
 
 \textcolor{red}{\textbf{Question 8 (0.5 point)}: How would we find the true parameter for the variable we are estimating (mean USA presidential height)?}
 
-*Your answer here*
+*We would estimate the mean by analyzing the recorded height data for all presidents*
 
 Now let's compare our sample mean (our estimate) to the true population mean (the parameter). Luckily the true population of American presidents is finite, and quite easy to find (for most ecological data we have little hope of ever measuring all of the units in our population).
 
 **Read in the dataset, "presidential_heights.csv", posted to D2L**. Make sure you name the dataframe something distinct from your class dataset.
 ```{r}
 # read in the .csv file containing all the presidents
-presDat <- presidential_heights
+presDat <- read.csv("/home/rstudio/Repos/School/BioStats/Lab2/presidential_heights.csv")
 # explore your data: how many rows, columns? What type of data does it include?
 str(presDat)
 #Number of Rows: 44
@@ -237,7 +237,7 @@ hist(CO2$uptake, breaks=20)
 In the above code, try changing 20 to something else. What does it do?
 
 ```{r, fig.width=3, fig.height=3}
-hist(CO2$uptake, main="Carbon Uptake", xlim=c(-10,60))
+hist(CO2$uptake, main="Carbon Uptake", xlim=c(-50,100))
 ```
 
 In the above code, change the -10 to -50 and the 60 to 100. What happens?
@@ -266,8 +266,8 @@ The command `par`, used above, allows you to set a number of graphical parameter
 
 ```{r,fig.width=6, fig.height=6}
 {par(mfrow=c(2,1))
-hist(Pres.Samp.3$HeightIn, main="Sampled Presidential Heights")
-hist(presidential_heights$Height, main="True Presidential Heights")
+hist(Pres.Samp.3$HeightIn, main="Sampled Presidential Heights", xlim = c(64, 76), xlab = "Height (in)")
+hist(presDat$Height, main="True Presidential Heights", xlab = "Height (in)")
 par(mfrow=c(1,1))}
 ```
 
@@ -275,11 +275,11 @@ par(mfrow=c(1,1))}
 
 ```{r}
 # Your code here
-meanHeight_p <- mean(presidential_heights$Height)
-medianHeight_p <- median(presidential_heights$Height)
-sdHeight_p <- sqrt(sum((presidential_heights$Height-mean(presidential_heights$Height))^2/(length(presidential_heights$Height)-1))) 
-minHeight_p <- min(presidential_heights$Height)
-maxHeight_p <- max(presidential_heights$Height)
+meanHeight_p <- mean(presDat$Height)
+medianHeight_p <- median(presDat$Height)
+sdHeight_p <- sqrt(sum((presDat$Height-mean(presDat$Height))^2/(length(presDat$Height)-1))) 
+minHeight_p <- min(presDat$Height)
+maxHeight_p <- max(presDat$Height)
 ```
 
 # Sampling Distributions
@@ -332,7 +332,7 @@ Most of the sample means are pretty close to the true parameter, but notice that
 
 \textcolor{red}{\textbf{Question 11 (1 point):} Where does our class estimate, in blue, fall on this distribution? Based on how we sampled the presidents in our class, why is our estimate so atypical? Give a reason to explain why our sampling led to an estimate that is far from the true parameter.}
 
-*Your answer here*
+*Our class estimate falls at ~ 75 inches. This could be due to a number of reasons. Obviously, we weren't truly sampling randomly, and that has the capacity to skew our distribution any which way. As well, I'd imagine most of us are unfamiliar with presidents from long ago, and (if I'm not mistaken), the average human height hundreds of years ago was different than it is today. Thus, we could have been sampling from just a tail end (more recent presidents) of the entire distribution*
 
 
 # Calculating descriptive statistics and plotting: tree data
@@ -368,6 +368,6 @@ girthSE
 
 \textcolor{red}{\textbf{Question 13 (1 point):} How would increasing the sample size change our estimate of standard error? How would increasing the sample size change our estimate of the mean girth (x-bar)?}
 
-*Your answer here* 
+*Increasing our sample size would bring our estimated mean closer to the true mean because we are taking into account more measurements of the population when we calculate the mean. Increasing our sample size would also cause our standard error to become smaller, as we are dividing the standard deviation by the square root of a larger number. Likewise, by increasing the sample size, we are decreasing amount of variation in our sample, and thus there will be less error in our estimates of the population.* 
 
 
