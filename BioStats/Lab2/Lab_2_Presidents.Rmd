@@ -1,7 +1,7 @@
 
 ---
 title: "Lab 2: Presidents"
-author: "Jackson"
+author: "Jackson Anderson"
 date: "September 3, 2020"
 output: pdf_document
 subtitle: Sampling, plotting, descriptive statistics
@@ -85,10 +85,13 @@ President.Sample$Gender <- NULL
 R can easily perform calculations on entire vectors or columns, of data. For instance:
 ```{r}
 myvector <- seq(0,10,1)
+myvector
 myvector2 <- myvector-1
+myvector2 #the above operation subtracted 1 from all elements of the vector
 ```
 
 Print out myvector and myvector2. How was the -1 calculation applied? 
+
 
 \textcolor{red}{\textbf{Question 3 (0.5 points)}: Create a new column, giving the heights of each president in inches, rather than cm. Name this column "HeightIn".}
 ```{r}
