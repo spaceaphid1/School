@@ -10,6 +10,7 @@ subtitle: Sampling, plotting, descriptive statistics
 # loading packages
 library(ggplot2)
 library(tidyverse)
+library(gridExtra)
 
 ```
 
