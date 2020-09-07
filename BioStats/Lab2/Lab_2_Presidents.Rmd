@@ -131,7 +131,8 @@ Do we have any missing data? The function `complete_cases` checks to make sure t
 complete.cases(Pres.Samp.2) 
 ```
 
-Which row is missing data? Is it missing all the data or just an entry in one column? 
+Which row is missing data? Is it missing all the data or just an entry in one column?
+*Row 11 is missing data in the height columns*
 
 Let's get a dataset with only the complete entries.The `complete.cases` function gave us a vector of TRUE/FALSE. If we want to create a new dataframe (`Pres.Samp.3`) with just the complete records, we can use the brackets to select those rows. Remember that the first argument inside the bracket gives the rows we want, and the second argument selects the columns we want. Leaving the second argument blank means we want all the columns in our new data.frame
 
