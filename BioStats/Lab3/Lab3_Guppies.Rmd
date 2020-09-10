@@ -1,13 +1,16 @@
 ---
 title: "Lab 3: Guppies"
-author: "Your Name Here"
-date: "Enter date here"
+author: "Jackson Anderson"
+date: "September 10, 2020"
 output: pdf_document
 subtitle: Hypothesis Testing
 ---
 ```{r setup, include=FALSE}
 ```
 
+```{r}
+library(tidyverse)
+```
 
 # General information
 This lab is due September 16 by 11:59 pm. **Upload the R Markdown document and the knitted PDF to Canvas.** The lab is worth 10 points (1 point per question unless otherwise noted). You are welcome and encouraged to talk with classmates and ask for help. However, each student should turn in their own lab assignment and all answers, including all code, needs to be solely your own.
@@ -43,11 +46,11 @@ Researchers used this data to investigate whether or not females displayed prefe
 
 \textcolor{red}{\textbf{Question 1:} What is the response (dependent) variable in this study? What kind of variable is it? }  
 
-*Your answers here*
+*The response variable is female visitation for either infected or uninfected males; the data type is nominal*
 
 \textcolor{red}{\textbf{Question 2:} (a) What is the null hypothesis the researchers are testing? (b) What is the alternative hypothesis? Hint: think about whether a one-tailed or two-tailed hypothesis test is appropriate here.}
 
-*Your answers here*
+*The null hypothesis is that male infection status does not have an effect on female preference (equal visitation by females). The alternative hypothesis is that infection status does have an effect on female preference (differential visitation); in this case, they predict that females will visit the uninfected males more; this would require a 1-tailed test, as they are predicting directional variable behavior*
 
 
 ### Experimental results
@@ -66,26 +69,31 @@ To keep consistent, from here on out let's refer to the event of a female choosi
 \textcolor{red}{\textbf{Question 3:} Calculate the estimated proportion of successes, or $\hat{p}$ (p-hat). Do this using functions in R, such as \texttt{sum()} and \texttt{length()}. Write out your answer.} 
 
 ```{r}
-# Your code here
+success <- length(which(guppy.trials == 1)) / length(guppy.trials)
+success
 ```
 
-*Your answer here*
+*the success rate is 72%*
 
 \textcolor{red}{\textbf{Question 4:} Calculate standard error of $\hat{p}$ (p-hat). The formula is in your lecture notes. Do the calculation in R and show your code below. Write out your answer}
 
 ```{r}
-# Your code here
+pSE <- sqrt((success*(1-success))/length(guppy.trials))
+pSE
+
 ```
 
-*Your answer here*
+*The standard error of our success estimate is .089*
 
 \textcolor{red}{\textbf{Question 5:} If the null hypothesis is true, what is the probability of observing the exact number of successes we observed? Hint: use the formula given in lecture (rather than R's \texttt{dbinom} function), and to save time, you may want to Google how to do a factorial (!) in R. Show your code. Write out your answer}
 
 ```{r}
-# Your code here
+prob18 <- ((25*24*23*22*21*20*19)/ factorial(7)) * .5^18 * .5^7
+prob18
+
 ```
 
-*Your answer here*
+*The probability of observing a success 18 times is .014*
 
 
 ### Testing the hypothesis: P-values
