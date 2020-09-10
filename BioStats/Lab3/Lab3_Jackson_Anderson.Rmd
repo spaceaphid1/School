@@ -50,7 +50,7 @@ Researchers used this data to investigate whether or not females displayed prefe
 
 \textcolor{red}{\textbf{Question 2:} (a) What is the null hypothesis the researchers are testing? (b) What is the alternative hypothesis? Hint: think about whether a one-tailed or two-tailed hypothesis test is appropriate here.}
 
-*The null hypothesis is that male infection status does not have an effect on female preference (equal visitation by females). The alternative hypothesis is that infection status does have an effect on female preference (differential visitation); in this case, they predict that females will visit the uninfected males more; this would require a 1-tailed test, as they are predicting directional variable behavior*
+*The null hypothesis is that male infection status does not have an effect on female preference (equal visitation frequency for both by females). The alternative hypothesis is that infection status does have an effect on female preference (differential visitation); in this case, they predict that females will visit the uninfected males more; this would require a 1-tailed test, as they are predicting directional variable behavior*
 
 
 ### Experimental results
@@ -83,12 +83,12 @@ pSE
 
 ```
 
-*The standard error of our success estimate is .089*
+*The standard error of our success rate is .089*
 
 \textcolor{red}{\textbf{Question 5:} If the null hypothesis is true, what is the probability of observing the exact number of successes we observed? Hint: use the formula given in lecture (rather than R's \texttt{dbinom} function), and to save time, you may want to Google how to do a factorial (!) in R. Show your code. Write out your answer}
 
 ```{r}
-prob18 <- ((25*24*23*22*21*20*19)/ factorial(7)) * .5^18 * .5^7
+prob18 <- ((25*24*23*22*21*20*19)/ factorial(7)) * .5^18 * (.5)^7
 prob18
 
 ```
@@ -117,7 +117,7 @@ p.null.diamond <- 1/4
 \textcolor{red}{\textbf{Question 6:} (1/2 point) Create a variable, \texttt{p.null.success} that represents your null hypothesis about the probability of a female choosing an uninfected male.}
 
 ```{r}
-# your code here
+p.null.success <- 0.5
 ```
 
 You have already calculated the probability of getting 18 successes out of 25. Now we need to calculate the probabilities of all the other possible outcomes. There are 26 possible outcomes: 0 successes, 1, 2, 3...up to 25 successes.
@@ -132,7 +132,7 @@ Next, the dbinom function calculates the probability of a given observation, giv
 
 ```{r}
 prob.18 <- dbinom(x = 18, size = 25, prob = p.null.success) 
-
+prob.18
 ```
 
 The `x=` argument gives the number of "successes". The `size=` argument gives the number of observations or trials, and the `prob=` is the proportion you expect if the null hypothesis is true.  The `dbinom` function uses the same formula that you used in question 5. Does your probability match? It should! 
@@ -142,7 +142,7 @@ To get the full null distribution, we must calculate the probability for each of
 \textcolor{red}{\textbf{Question 7:} (1/2 point) Using the \texttt{dbinom} function, create a vector, \texttt{null.probabilities}, giving the probability of each observation.}
 
 ```{r}
-# your code here
+null.probabilities <- dbinom(observations, 25, p.null.success)
 ```
 
 Now, let's make a dataframe and plot the data:
@@ -180,18 +180,18 @@ If we are observing coin tosses and we had 9 heads out of 12 tosses, observation
 
 \textcolor{red}{\textbf{Question 8:} What observations are as or more extreme than 18/25? Use the bar chart above to help you visualize this.}
 
-*Your answer here* 
+*Observations that are more extreme: 18-25; less extreme = 0-7 * 
 
 To get the P-value, we'll sum all the probabilities in our dataframe that correspond to observations as or more extreme than 18/25. Think of this as summing the areas of the bar chart corresponding to the tails of the distribution. Switch out the *2* and *5* in the code below to get the P-value for the guppy data. 
 
 ```{r}
-P.value <- sum(null.probabilities[observations <= 2] + null.probabilities[observations >= 5])
+P.value <- sum(null.probabilities[observations <= 7] + null.probabilities[observations >= 18])
 P.value
 ```
 
 \textcolor{red}{\textbf{Question 9:} Based on your observed data, is female guppy mate choice influenced by parasite infection? Make sure to refer to the null hypothesis and interpret the P-value in your answer.}
 
-*Your answer here*
+*Yes, female guppy mate choice is influnced by parasite infections (based off of p = 0.043) *
 
 
 ### Using R's built-in function
@@ -205,7 +205,7 @@ binom.test(3, n = 10, p = 0.5, alternative = "two.sided")
 Use the `binom.test` function, modifying it as you see fit, to get a P-value for the guppy data. Make sure it matches your P-value above. If not, go back and troubleshoot the P-value you got by hand!
 
 ```{r}
-# Your code here
+binom.test(18, 25)
 ```
 
 
@@ -216,20 +216,25 @@ Now, say the researchers only tested 7 female guppies, instead of 25. The observ
 \textcolor{red}{\textbf{Question 10:} Calculate $\hat{p}$ (p-hat) and its standard error with the new sample. Again, don't count up the number of successes in your head, but create a vector with the observations and use R's embedded functions.}
 
 ```{r}
-# Your code here
+observations <- c(0, 1, 0, 1, 1, 1, 1)
+pHat <- length(which(observations == 1)) / length(observations)
+pSE_2 <- sqrt((pHat*(1-pHat))/length(observations))
+pSE_2
 ```
 
-*Your estimates here*
+*p hat = .72; se = .17*
 
 How does this p-hat compare to the observed p-hat from Question 3?
+*This estimated proportions are very similar (both around 0.7)*
 
 \textcolor{red}{\textbf{Question 11:} Now calculate and interpret the P-value from the new set of 7 observations. You may use the \texttt{binom.test()} function. Why does the P-value change drastically, even though p-hat is similar to our first set of observations?} 
 
 ```{r}
-# Your code here
+binom.test(length(which(observations == 1)), length(observations))
+
 ```
 
-*Your P-value and interpretation here * 
+*The p-value changes drastically because our sample size goes down; we have much less statistical power with such a small sample size, and thus claiming significance is very difficult * 
 
 
 
