@@ -234,7 +234,7 @@ binom.test(length(which(observations == 1)), length(observations))
 
 ```
 
-*The p-value changes drastically because our sample size goes down; we have much less statistical power with such a small sample size, and thus claiming significance is very difficult * 
+*The p-value changes drastically because our sample size (number of trials) goes down. With a lower sample size, the likelihood of observing our given number of successes is much higher. We have much less statistical power with such a small sample size, and thus claiming significance is very difficult * 
 
 
 
