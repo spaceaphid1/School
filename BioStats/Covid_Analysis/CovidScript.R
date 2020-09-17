@@ -13,6 +13,7 @@ cuTests <- c(NA,23,79,73,52,80,NA,NA,32,30,107,68,226,NA,NA,NA,171,178,139)
 cuPositive <- c(NA, 3,4,1,2,3,NA,NA,2,1,21,17,49,NA,NA,NA,30,41,45)
 dateRange <- c("8/23", "8/24","8/25","8/26", "8/27", "8/28", "8/29", "8/30", "8/31", "9/1", "9/2", "9/3", "9/4", "9/5", "9/5", "9/7", "9/8", "9/9", "9/10")
 
+
 #Creating an empty data frame
 dat <- data.frame(Source = rep(NA, 19*2),
                      Tests_Administered = rep(NA, 19*2),
@@ -30,6 +31,10 @@ dat[20:38, 3] <- countyPostive
 dat[1:19, 4] <- cuPositive/cuTests
 dat[20:38, 4] <- countyPostive/countyTests
 dat[1:38, 5] <- rep(dateRange, 2)
+
+dat$Date <- as.Date(dat$Date,format = "%m/%d" )
+
+str(dat)
 
 #Preliminary Visualization
 
@@ -68,52 +73,45 @@ meanCountyRate <- mean(countyDat$Positivity_Rate)
 
 hypothesisTest <- binom.test(sum(cuDat$Positive_Tests, na.rm = T), sum(cuDat$Tests_Administered, na.rm = T), meanCountyRate, alternative = "two.sided") #does not fall within the predictions of the null (0.024 positivity) (p<.001); positivity rate at CU is 17.4% and ~ 6 times greater than that of the county
 
-#Modeling: linear mixed-effects model using date as nested randome effect variable
+#Modeling: linear model using date as a continuous co-variate
 
 modelDat <- dat %>%
   filter(!is.na(Positivity_Rate))
 
-positivityLME <- lme(Positivity_Rate ~ Source,
-                     random = ~1|Date/Tests_Administered, 
-                     data = modelDat)
-summary(positivityLME)
+positivityLM <- lm(Positivity_Rate ~ Source*Date,
+                   data = modelDat)
 
-plot.lme(positivityLME)#residual variances are highly heteroskedastic
+summary(positivityLM)
 
-#Attempting a unequal variances model to account for heteroskedasticity in residual variances
+plot(positivityLM)#residual variances are heteroskedastic
 
-positivityLME_uv  <- lme(Positivity_Rate ~ Source,
-                                         data = modelDat,
-                                         random = ~1|Date/Tests_Administered,
-                                         weights = varIdent(form = ~1|Source))
-                     
-summary(positivityLME_uv)
+#Attempting to account for the unequal residual variances by log transforming the response variable
 
-plot.lme(positivityLME_uv) #much better!
+positivityLM_log <- lm(log(Positivity_Rate) ~ Source*Date,
+                   data = modelDat)
 
-#Running anova on model to see which is better to use
+summary(positivityLM_log)
 
-anova(positivityLME_uv, positivityLME) #unequal variance model is highly preferable to equal variances model across AIC, BIC, and LogLik measures
+plot(positivityLM_log) #Much better!
+
 
 #'creating a model for plotting:
 
-positivityLME_uv_noint  <- lme(Positivity_Rate ~ 0 + Source,
-                         data = modelDat,
-                         random = ~1|Date/Tests_Administered,
-                         weights = varIdent(form = ~1|Source))
+positivityLM_log_noint <- lm(log(Positivity_Rate) ~ 0 + Source*Date,
+                       data = modelDat)
 
-summary_positivityLME_uv_noint <- summary(positivityLME_uv_noint)
+positivityLM_log_noint_summary <- summary(positivityLM_log_noint)
 
 #'DF for important statistics (mean, se, and categories)
-finalPlotDF <- data.frame(mean =  summary_positivityLME_uv_noint$tTable[,"Value"],
-                          se = summary_positivityLME_uv_noint$tTable[,"Std.Error"],
+finalPlotDF <- data.frame(mean = c(exp(-.003911), exp(-.0002307)),
+                          se = log(positivityLM_log_noint_summary$coefficients[c(1,2),2]),
                           treatment = c("County", "CU"))
 
 
 #' Final Plot
 finalPlot <- ggplot(finalPlotDF, aes(treatment, mean)) +
   geom_point() +
-  geom_jitter(data = dat, aes(Source, log1p(Positivity_Rate), col = Date, size = Tests_Administered), width = .05, alpha = .3)+
+  geom_jitter(data = dat, aes(Source, log10(Positivity_Rate), col = Date, size = Tests_Administered), width = .05, alpha = .3)+
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width = .3) +
   labs(y = "Positivity Rate (%)",
        x = "Source",
