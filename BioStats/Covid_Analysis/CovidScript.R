@@ -1,21 +1,133 @@
-#' Covid Analysis
+#' BioStats Covid Analysis Group Assignment
 
+#required packages
 library(tidyverse)
+library(grid)
+library(gridExtra)
+library(nlme)
 
-Date_Tested <- c("8/23", "8/26", "8/29", "9/1", "9/4", "9/7", "9/10")
-Pos_Propn <- c(5/540, 10/360, 7/180, 20/510, 10/525, 15/175, 15/535 )
+#Creating the Data
+countyTests <- c(80,450,440,360,445,350,180,184,515,508,480,470,520,253,160,165,605,545,525)
+countyPostive <- c(2,5,5,5,20,13,3,3,13,12,8,14,5,4,5,9,17,13,10)
+cuTests <- c(NA,23,79,73,52,80,NA,NA,32,30,107,68,226,NA,NA,NA,171,178,139)
+cuPositive <- c(NA, 3,4,1,2,3,NA,NA,2,1,21,17,49,NA,NA,NA,30,41,45)
+dateRange <- c("8/23", "8/24","8/25","8/26", "8/27", "8/28", "8/29", "8/30", "8/31", "9/1", "9/2", "9/3", "9/4", "9/5", "9/5", "9/7", "9/8", "9/9", "9/10")
 
-countyDat <- data.frame(cbind(Date_Tested, Pos_Propn))
+#Creating an empty data frame
+dat <- data.frame(Source = rep(NA, 19*2),
+                     Tests_Administered = rep(NA, 19*2),
+                     Positive_Tests = rep(NA, 19*2),
+                     Positivity_Rate = rep(NA, 19*2),
+                     Date = rep(NA, 19*2))
 
-meanPositivity <- mean(Pos_Propn)
+#populating the data frame with data
+dat[1:19, 1] <- rep("CU", 19)
+dat[20:38, 1] <- rep("County", 19)
+dat[1:19, 2] <- cuTests
+dat[20:38, 2] <- countyTests
+dat[1:19, 3] <- cuPositive
+dat[20:38, 3] <- countyPostive
+dat[1:19, 4] <- cuPositive/cuTests
+dat[20:38, 4] <- countyPostive/countyTests
+dat[1:38, 5] <- rep(dateRange, 2)
 
-countyDat$Rounded_Positivity <- round(Pos_Propn, digits = 3)
+#Preliminary Visualization
+
+#Testing by Date
+tests <- ggplot(dat,aes(x = Date,y = Tests_Administered)) + 
+  geom_bar(aes(fill = Source),stat = "identity",position = "dodge")
 
 
-ggplot(countyDat, aes(Date_Tested, Rounded_Positivity)) +
-  geom_bar(stat = "identity")+
-  ggtitle("Rounded Positivity Rate by Date") +
-  xlab("Date Tested") +
-  ylab("Positivity Rate (rounded)") +
-  labs(subtitle = "Boulder County", caption = "includes CU Boulder Case Data")
+#Positive cases by date
+positives <- ggplot(dat,aes(x = Date,y = Positive_Tests)) + 
+  geom_bar(aes(fill = Source),stat = "identity",position = "dodge")
+
+
+#Positivity by Date
+rate <- ggplot(dat,aes(x = Date,y = Positivity_Rate)) + 
+  geom_bar(aes(fill = Source),stat = "identity",position = "dodge")
+
+#Aggregated Plot
+caseDataMultiplot <- grid.arrange(tests, positives, rate)
+
+
+
+#Hypothesis Testing
+
+#filtering the data by source
+countyDat <- dat %>%
+  filter(Source == "County")
+
+cuDat <- dat %>%
+  filter(Source == "CU")
+
+#Testing
+
+#Our alpha: null is defined as the positivity rate of the county
+meanCountyRate <- mean(countyDat$Positivity_Rate)
+
+hypothesisTest <- binom.test(sum(cuDat$Positive_Tests, na.rm = T), sum(cuDat$Tests_Administered, na.rm = T), meanCountyRate, alternative = "two.sided") #does not fall within the predictions of the null (0.024 positivity) (p<.001); positivity rate at CU is 17.4% and ~ 6 times greater than that of the county
+
+#Modeling: linear mixed-effects model using date as nested randome effect variable
+
+modelDat <- dat %>%
+  filter(!is.na(Positivity_Rate))
+
+positivityLME <- lme(Positivity_Rate ~ Source,
+                     random = ~1|Date/Tests_Administered, 
+                     data = modelDat)
+summary(positivityLME)
+
+plot.lme(positivityLME)#residual variances are highly heteroskedastic
+
+#Attempting a unequal variances model to account for heteroskedasticity in residual variances
+
+positivityLME_uv  <- lme(Positivity_Rate ~ Source,
+                                         data = modelDat,
+                                         random = ~1|Date/Tests_Administered,
+                                         weights = varIdent(form = ~1|Source))
+                     
+summary(positivityLME_uv)
+
+plot.lme(positivityLME_uv) #much better!
+
+#Running anova on model to see which is better to use
+
+anova(positivityLME_uv, positivityLME) #unequal variance model is highly preferable to equal variances model across AIC, BIC, and LogLik measures
+
+#'creating a model for plotting:
+
+positivityLME_uv_noint  <- lme(Positivity_Rate ~ 0 + Source,
+                         data = modelDat,
+                         random = ~1|Date/Tests_Administered,
+                         weights = varIdent(form = ~1|Source))
+
+summary_positivityLME_uv_noint <- summary(positivityLME_uv_noint)
+
+#'DF for important statistics (mean, se, and categories)
+finalPlotDF <- data.frame(mean =  summary_positivityLME_uv_noint$tTable[,"Value"],
+                          se = summary_positivityLME_uv_noint$tTable[,"Std.Error"],
+                          treatment = c("County", "CU"))
+
+
+#' Final Plot
+finalPlot <- ggplot(finalPlotDF, aes(treatment, mean)) +
+  geom_point() +
+  geom_jitter(data = dat, aes(Source, log1p(Positivity_Rate), col = Date, size = Tests_Administered), width = .05, alpha = .3)+
+  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width = .3) +
+  labs(y = "Positivity Rate (%)",
+       x = "Source",
+       title = "Positive Cases Measured Against Total Tests by Source",
+       subtitle = "Samples collected from 8/23 to 9/10",
+       caption = "Date and tests administered on that date used as neste random effects") +
+  annotate("text", 1, .08, label = "a") + 
+  theme_minimal()
+
+finalPlot
+
+#'Closing Remarks: first thing that is evident is that the County sampled a lot more, so their numbers are going to be more accurate. Secondly, there is much more variation in the CU dataset (SD of ~.1 compared to the county's SD of ~.01); standard error for CU was greater than the County's, too (.03 vs .003, respectively). As well, modeling indicates that CU's sampling/testing methodology is related an effect size of + 11 percentage points (approximated) when compared to the positivity rate of the county; whether this is due to their sampling criteria, the behavior of the students, or some other confounding variable cannot be determined. The effect of sampling date on the SD of both the County and CU was negligible, however the number of tests administered accounted for roughly 1.2% of the variation seen in positivity rate. 
+
+
+
+
 
