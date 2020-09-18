@@ -128,7 +128,6 @@ betaPlot <- ggplot(modelDat, aes(Date, Positivity_Rate)) +
   labs(y = "Positivity Rate",
        title = "Beta Regression",
        subtitle = "Date as continuous covariate") +
-  annotate("text", 2, .25, label = "test") +
   theme_minimal()
 
 betaPlot
