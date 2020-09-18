@@ -5,6 +5,7 @@ library(tidyverse)
 library(grid)
 library(gridExtra)
 library(nlme)
+library(plotrix)
 
 #Creating the Data
 countyTests <- c(80,450,440,360,445,350,180,184,515,508,480,470,520,253,160,165,605,545,525)
@@ -40,17 +41,17 @@ str(dat)
 
 #Testing by Date
 tests <- ggplot(dat,aes(x = Date,y = Tests_Administered)) + 
-  geom_bar(aes(fill = Source),stat = "identity",position = "dodge")
+  geom_bar(aes(fill = Source),stat = "identity",position = "dodge") + theme_minimal()
 
 
 #Positive cases by date
 positives <- ggplot(dat,aes(x = Date,y = Positive_Tests)) + 
-  geom_bar(aes(fill = Source),stat = "identity",position = "dodge")
+  geom_bar(aes(fill = Source),stat = "identity",position = "dodge") + theme_minimal()
 
 
 #Positivity by Date
 rate <- ggplot(dat,aes(x = Date,y = Positivity_Rate)) + 
-  geom_bar(aes(fill = Source),stat = "identity",position = "dodge")
+  geom_bar(aes(fill = Source),stat = "identity",position = "dodge") + theme_minimal()
 
 #Aggregated Plot
 caseDataMultiplot <- grid.arrange(tests, positives, rate)
@@ -71,9 +72,11 @@ cuDat <- dat %>%
 #Our alpha: null is defined as the positivity rate of the county
 meanCountyRate <- mean(countyDat$Positivity_Rate)
 
-hypothesisTest <- binom.test(sum(cuDat$Positive_Tests, na.rm = T), sum(cuDat$Tests_Administered, na.rm = T), meanCountyRate, alternative = "two.sided") #does not fall within the predictions of the null (0.024 positivity) (p<.001); positivity rate at CU is 17.4% and ~ 6 times greater than that of the county
+hypothesisTest <- binom.test(sum(cuDat$Positive_Tests, na.rm = T), sum(cuDat$Tests_Administered, na.rm = T), meanCountyRate, alternative = "two.sided") 
 
-#Modeling: linear model using date as a continuous co-variate
+hypothesisTest #does not fall within the predictions of the null (0.024 positivity) (p<.001); positivity rate at CU is 17.4% and ~ 6 times greater than that of the county
+
+#Modeling: linear model using date as a temporal continuous co-variate. This will give us a better understanding of the relationship between positivity and time; i.e., positivity recorded on day x may be more related to the positivity recorded on day x-1 than x-2
 
 modelDat <- dat %>%
   filter(!is.na(Positivity_Rate))
@@ -94,31 +97,36 @@ summary(positivityLM_log)
 
 plot(positivityLM_log) #Much better!
 
+#' _Notes on the model above_
+#' The results from this model indicate that, when accounting for the effect of time on positivity (based on the assumption that positivity changes with time), the county's positivity rate is decreasing and while CU's is increasing, and that these metrics of positivity and related change are significantly different. 
+
+summary_positivityLM_log <- summary(positivityLM_log)
 
 #'creating a model for plotting:
 
-positivityLM_log_noint <- lm(log(Positivity_Rate) ~ 0 + Source*Date,
+positivityLM_log_noint <- lm(log(Positivity_Rate) ~ 0 + Source*(0+Date),
                        data = modelDat)
 
 positivityLM_log_noint_summary <- summary(positivityLM_log_noint)
 
 #'DF for important statistics (mean, se, and categories)
-finalPlotDF <- data.frame(mean = c(exp(-.003911), exp(-.0002307)),
-                          se = log(positivityLM_log_noint_summary$coefficients[c(1,2),2]),
+finalPlotDF <- data.frame(mean = c(log10(mean(countyDat$Positivity_Rate)), log10(mean(cuDat$Positivity_Rate, na.rm = T))),
+                          se = c(std.error(log10(countyDat$Positivity_Rat)), std.error(log10(cuDat$Positivity_Rate))),
                           treatment = c("County", "CU"))
 
 
 #' Final Plot
 finalPlot <- ggplot(finalPlotDF, aes(treatment, mean)) +
   geom_point() +
-  geom_jitter(data = dat, aes(Source, log10(Positivity_Rate), col = Date, size = Tests_Administered), width = .05, alpha = .3)+
+  geom_jitter(data = dat, aes(Source, log10(Positivity_Rate), col = Date, size = Tests_Administered), width = .05, alpha = .2)+
   geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width = .3) +
   labs(y = "Positivity Rate (%)",
        x = "Source",
        title = "Positive Cases Measured Against Total Tests by Source",
        subtitle = "Samples collected from 8/23 to 9/10",
        caption = "Date and tests administered on that date used as neste random effects") +
-  annotate("text", 1, .08, label = "a") + 
+  annotate("text", 1, -1, label = "a") + 
+  scale_color_gradient() +
   theme_minimal()
 
 finalPlot
