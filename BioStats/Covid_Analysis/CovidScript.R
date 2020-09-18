@@ -6,11 +6,14 @@ library(grid)
 library(gridExtra)
 library(nlme)
 library(plotrix)
+library(betareg)
 
 #Creating the Data
+#NOTE: Even though we were told that the CU data was baked into th County data, the numbers we have do not reflect this: when the positives from boulder were subtracted from the positives from the county, several days resulted in negative numbers. For the rest of this analysis, we will use the numbers as they are below, and acknowledge that the two are not completely independent of one another!
+
 countyTests <- c(80,450,440,360,445,350,180,184,515,508,480,470,520,253,160,165,605,545,525)
-countyPostive <- c(2,5,5,5,20,13,3,3,13,12,8,14,5,4,5,9,17,13,10)
 cuTests <- c(NA,23,79,73,52,80,NA,NA,32,30,107,68,226,NA,NA,NA,171,178,139)
+countyPostive <- c(2,5,5,5,20,13,3,3,13,12,8,14,5,4,5,9,17,13,10)
 cuPositive <- c(NA, 3,4,1,2,3,NA,NA,2,1,21,17,49,NA,NA,NA,30,41,45)
 dateRange <- c("8/23", "8/24","8/25","8/26", "8/27", "8/28", "8/29", "8/30", "8/31", "9/1", "9/2", "9/3", "9/4", "9/5", "9/5", "9/7", "9/8", "9/9", "9/10")
 
@@ -34,6 +37,8 @@ dat[20:38, 4] <- countyPostive/countyTests
 dat[1:38, 5] <- rep(dateRange, 2)
 
 dat$Date <- as.Date(dat$Date,format = "%m/%d" )
+
+  
 
 str(dat)
 
@@ -81,55 +86,56 @@ hypothesisTest #does not fall within the predictions of the null (0.024 positivi
 modelDat <- dat %>%
   filter(!is.na(Positivity_Rate))
 
-positivityLM <- lm(Positivity_Rate ~ Source*Date,
-                   data = modelDat)
+#fitting beta regression to account for response variable being a fraction
+positivityModel <- betareg(Positivity_Rate ~ Source*Date, data = modelDat)
 
-summary(positivityLM)
+#diagnostics:
+plot(positivityModel)
 
-plot(positivityLM)#residual variances are heteroskedastic
-
-#Attempting to account for the unequal residual variances by log transforming the response variable
-
-positivityLM_log <- lm(log(Positivity_Rate) ~ Source*Date,
-                   data = modelDat)
-
-summary(positivityLM_log)
-
-plot(positivityLM_log) #Much better!
+summary(positivityModel)
 
 #' _Notes on the model above_
-#' The results from this model indicate that, when accounting for the effect of time on positivity (based on the assumption that positivity changes with time), the county's positivity rate is decreasing and while CU's is increasing, and that these metrics of positivity and related change are significantly different. 
+#' The results from this model indicate that, when accounting for the effect of time on positivity (based on the assumption that positivity changes with time), Cu's postivity rate is heading in the opposite direction (while the county's is decreasing with time, CU's is increasing). 
 
-summary_positivityLM_log <- summary(positivityLM_log)
+#' _Plotting_
 
-#'creating a model for plotting:
+#'date frame for important statistics (mean, se, categories)
 
-positivityLM_log_noint <- lm(log(Positivity_Rate) ~ 0 + Source*(0+Date),
-                       data = modelDat)
+statsDF <- data.frame(mean = c(mean(countyDat$Positivity_Rate), mean(cuDat$Positivity_Rate, na.rm = T)),
+                      error = c(std.error(countyDat$Positivity_Rate), std.error(cuDat$Positivity_Rate, na.rm = T)),
+                      treatment = c("County", "CU"))
 
-positivityLM_log_noint_summary <- summary(positivityLM_log_noint)
+#Observations Plot:
 
-#'DF for important statistics (mean, se, and categories)
-finalPlotDF <- data.frame(mean = c(log10(mean(countyDat$Positivity_Rate)), log10(mean(cuDat$Positivity_Rate, na.rm = T))),
-                          se = c(std.error(log10(countyDat$Positivity_Rat)), std.error(log10(cuDat$Positivity_Rate))),
-                          treatment = c("County", "CU"))
-
-
-#' Final Plot
-finalPlot <- ggplot(finalPlotDF, aes(treatment, mean)) +
+obsvPlot <- ggplot(statsDF, aes(treatment, mean)) +
   geom_point() +
-  geom_jitter(data = dat, aes(Source, log10(Positivity_Rate), col = Date, size = Tests_Administered), width = .05, alpha = .2)+
-  geom_errorbar(aes(ymin=mean-se, ymax=mean+se), width = .3) +
-  labs(y = "Positivity Rate (%)",
-       x = "Source",
-       title = "Positive Cases Measured Against Total Tests by Source",
-       subtitle = "Samples collected from 8/23 to 9/10",
-       caption = "Date and tests administered on that date used as neste random effects") +
-  annotate("text", 1, -1, label = "a") + 
-  scale_color_gradient() +
+  geom_errorbar(aes(ymin = mean - error, ymax = mean + error), width = .3) +
+  geom_jitter(data = modelDat,aes(Source, Positivity_Rate, color = Source), width = .05,alpha = .4)+
+  labs(x = "Data Source", 
+       y = "Positivity Rate",
+       title = "Positivity Rate by Source") +
+  annotate("text", 1, .08, label = "a") +
+  theme_minimal()
+obsvPlot
+
+#Beta regression plot: taking into account date!
+betaPlot <- ggplot(modelDat, aes(Date, Positivity_Rate)) +
+  geom_point(aes(color = Source)) + 
+  geom_smooth(aes(y = predict(positivityModel, modelDat)), 
+              method = "loess", 
+              color = "darkslategrey",
+              linetype = "dashed") +
+  labs(y = "Positivity Rate",
+       title = "Beta Regression",
+       subtitle = "Date as continuous covariate") +
+  annotate("text", 2, .25, label = "test") +
   theme_minimal()
 
-finalPlot
+betaPlot
+
+finalMultiplot <- grid.arrange(obsvPlot, betaPlot)
+  
+
 
 #'Closing Remarks: first thing that is evident is that the County sampled a lot more, so their numbers are going to be more accurate. Secondly, there is much more variation in the CU dataset (SD of ~.1 compared to the county's SD of ~.01); standard error for CU was greater than the County's, too (.03 vs .003, respectively). As well, modeling indicates that CU's sampling/testing methodology is related an effect size of + 11 percentage points (approximated) when compared to the positivity rate of the county; whether this is due to their sampling criteria, the behavior of the students, or some other confounding variable cannot be determined. The effect of sampling date on the SD of both the County and CU was negligible, however the number of tests administered accounted for roughly 1.2% of the variation seen in positivity rate. 
 
