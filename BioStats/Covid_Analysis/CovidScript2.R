@@ -5,8 +5,8 @@ library(tidyverse)
 library(grid)
 library(gridExtra)
 library(nlme)
-library(plotrix)
 library(betareg)
+library(plotrix)
 
 #Creating the Data
 #NOTE: Even though we were told that the CU data was baked into th County data, the numbers we have do not reflect this: when the positives from boulder were subtracted from the positives from the county, several days resulted in negative numbers. For the rest of this analysis, we will use the numbers as they are below, and acknowledge that the two are not completely independent of one another!
@@ -60,6 +60,7 @@ rate <- ggplot(dat,aes(x = Date,y = Positivity_Rate)) +
 
 #Aggregated Plot
 caseDataMultiplot <- grid.arrange(tests, positives, rate)
+ggsave("caseDataMultiplot.png")
 
 
 
