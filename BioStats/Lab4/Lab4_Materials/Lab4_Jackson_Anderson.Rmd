@@ -12,6 +12,11 @@ subtitle: Chi-squared tests of proportions
 
 ```
 
+```{r}
+library(tidyverse)
+
+```
+
 # General information
 This lab is due September 23 by 11:59 pm. **Upload the R Markdown document and the knitted pdf to Canvas.** The lab is worth 10 points (all questions worth 1 point unless otherwise noted). You are welcome and encouraged to talk with classmates and ask for help. However, each student should turn in their own lab assignment and all answers, including all code, needs to be solely your own.
 
@@ -119,7 +124,7 @@ Therefore, the researchers are interested in whether or not their response varia
 The data from this example are in the file fish_data.csv. Read in the data and take a look at the structure. Note that this data gives the response of each individual fit, rather than counts (or frequencies) of each group. 
 
 ```{r}
-
+fish <- read_csv("~/Repos/School/BioStats/Lab4/Lab4_Materials/fish_data.csv")
 ```
 
 ## Step 2: Create a summary table for plotting
@@ -210,26 +215,27 @@ Use the class' data to see if students can discriminate between Jelly Belly flav
 
 \textcolor{red}{\textbf{Question 1: 1 point} What is the null hypothesis being tested here? What is the alternative hypothesis?}
 
-*Null hypothesis: *
+*Null hypothesis: The probability of a student guessing the correct flavor is no different than the probability of randomly picking a flavor for each sample *
 
-*Alternative hypothesis: *
+*Alternative hypothesis: students guess the correct flavor of a jelly bean better than when selections are left to pure chance *
 
 
 \textcolor{red}{\textbf{Question 2: 1 point} Run the appropriate statistical test. Include code for reading in the class' data from a csv. Hint: there are two ways to approach this data; one will give an exact result, and the other an approximation. Either approach is fine here. Report the p-value and test statistic.}
 
 ```{r}
-# your code here
+jellyDat <- read_csv("~/Repos/School/BioStats/Lab4/Lab4_Materials/JellyBelly.csv")
 
+chisq.test(y = jellyDat$Correct, x = jellyDat$Initials, correct = F)
 
 ```
 
-*Your p-value and test statistic here* 
+*p-val: 0.306; test statistic: 44* 
 
 
 
 \textcolor{red}{\textbf{Question 3: 2 points} Interpret the results of your statistical test (be specific about what the P-value actually means). Explain what it reveals about the initial question.}
 
-*Your answer here*
+*With a p-val of .306, this indicates that students cannot reliably guess the correct flavor of a jelly bean. Our p-val indicates that there is ~30% chance that the students *
 
 
 
