@@ -1,7 +1,7 @@
 ---
 title: "Lab 4: Sweet Tooth"
-author: "Your name here"
-date: "Date here"
+author: "Jackson Anderson"
+date: "Sept 20th, 2020"
 output:
   pdf_document: default
   html_document: default
@@ -215,9 +215,9 @@ Use the class' data to see if students can discriminate between Jelly Belly flav
 
 \textcolor{red}{\textbf{Question 1: 1 point} What is the null hypothesis being tested here? What is the alternative hypothesis?}
 
-*Null hypothesis: The probability of a student guessing the correct flavor is no different than the probability of randomly picking a flavor for each sample *
+*Null hypothesis: The number of correct student guesses is not different than the number of correct results when flavor for a given jelly bean is assigned randomly *
 
-*Alternative hypothesis: students guess the correct flavor of a jelly bean better than when selections are left to pure chance *
+*Alternative hypothesis: students guess the correct flavor of a jelly bean more accurately than when flavor assignments for a given jelly bean are random *
 
 
 \textcolor{red}{\textbf{Question 2: 1 point} Run the appropriate statistical test. Include code for reading in the class' data from a csv. Hint: there are two ways to approach this data; one will give an exact result, and the other an approximation. Either approach is fine here. Report the p-value and test statistic.}
@@ -225,17 +225,27 @@ Use the class' data to see if students can discriminate between Jelly Belly flav
 ```{r}
 jellyDat <- read_csv("~/Repos/School/BioStats/Lab4/Lab4_Materials/JellyBelly.csv")
 
-chisq.test(y = jellyDat$Correct, x = jellyDat$Initials, correct = F)
+observed <- c(length(which(jellyDat$Correct == 1))/length(jellyDat$Correct), length(which(jellyDat$Correct == 0))/length(jellyDat$Correct))
+nullProb <- rep(1/2, 2)
+
+chisq.test(observed, p = nullProb)
+
+# binom.test(length(which(jellyDat$Correct == 1)), length(jellyDat$Correct))
+
+
 
 ```
 
-*p-val: 0.306; test statistic: 44* 
+\textcolor{purple}{\textbf{Directions were unclear} I'm honestly not sure which test to run here. Given that this lab is about chisq tests, it seems fitting to run a chisq test. However, if I was to approach this problem myself, I would do a binomial test since we are dealing with 0's and 1's and whether or not our number successes fall within the predictions of the null given our sample size. Wouldn't it make more sense to run a chisq if we had data on which of the six flavors were chosen correctly?}
+
+
+*p-val: 0.93; test statistic:0.0083 * 
 
 
 
 \textcolor{red}{\textbf{Question 3: 2 points} Interpret the results of your statistical test (be specific about what the P-value actually means). Explain what it reveals about the initial question.}
 
-*With a p-val of .306, this indicates that students cannot reliably guess the correct flavor of a jelly bean. Our p-val indicates that there is ~30% chance that the students *
+*A p-val of .93 indicates that students cannot reliably guess the correct flavor of a jelly bean, and that their guess is just as accurate as if left to chance. *
 
 
 
@@ -245,26 +255,28 @@ See the summaries at the beginning of this lab, or the background document on Ca
 
 \textcolor{red}{\textbf{Question 4: 1 point} What is the null and alternative hypothesis being tested here?}
 
-*Null hypothesis: * 
+*Null hypothesis: The frequency at which someone consumes soda has no effect on their ability to correctly distinguish between Coke and Peps * 
 
-*Alternative hypothesis: *
+*Alternative hypothesis: The frequency at which one correctly labels a soda as either Coke or Pepsi is dependent on the frequency at which they consume soda *
 
 
 \textcolor{red}{\textbf{Question 5: 2 points} Run the appropriate statistical test. Include code for reading in the class' data from a csv. Report the p-value and test statistic.}
 
 
 ```{r}
-# your code here
+sodaDat <- read_csv("~/Repos/School/BioStats/Lab4/Lab4_Materials/CokevPepsi.csv")
+
+chisq.test(sodaDat$Correct, sodaDat$SodaFrequency)
 
 
 ```
 
-*Your p-value and test statistic here* 
+*pval: .41, test stat: 1.80* 
 
 
 \textcolor{red}{\textbf{Question 6: 2 points} Interpret the results of your statistical test and explain what it reveals about the initial question.}
 
-*Your answer here*
+*According to the results of the test, there is no difference ones ability to correctly brand a soda based on how frequently they drink soda*
 
 
 # Plotting data
@@ -273,8 +285,18 @@ See the summaries at the beginning of this lab, or the background document on Ca
 Note: The default plot function will likely not produce a perfect plot. You will need to modify things like: labels, font size, colors, etc to make your plot more readable. This requires adding extra arguments to the plot command (demonstrated in above examples). Your plot will be graded on ease of interpretation (e.g. overlapping labels, axes with dollar signs in the titles, will not receive full credit.)
 
 ```{r}
+sodaTable <- table(sodaDat$SodaFrequency, sodaDat$Correct)
 
-#your code here
+colnames(sodaTable) <- c("Incorrect", "Correct")
+
+colnames(sodaTable)
+
+addmargins(sodaTable)
+
+
+mosaicplot( sodaTable, col = c("firebrick", "pink"), cex.axis = 1, 
+            sub = "Soda Consumption Level", ylab = "Relative frequency", 
+            main = "Correct Guesses and Soda Consumption")
 
 ```
 
