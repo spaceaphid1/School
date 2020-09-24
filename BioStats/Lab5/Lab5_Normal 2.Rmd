@@ -119,46 +119,61 @@ For the following questions, it might be useful to sketch out the standard norma
 \textcolor{red}{\textbf{Question 1 (1 point): } Find the probability of observing a value less than or equal to -2.5, for the standard normal curve. Print out the value.}
 
 ```{r}
-# Your code here
+pnorm(-2.5)
 ```
 
 
 \textcolor{red}{\textbf{Question 2 (1 point): } Find the probability of observing a value greater than or equal to 3, for the standard normal curve. Print out the value.}
 
 ```{r}
-# your code here
+pnorm(3, lower.tail = F)
 ```
 
 
 
 \textcolor{red}{\textbf{Question 3 (0.5 point): } What is the total area under any normal distribution? Why?}
 
-*your answer here*
+*The area under the normal distribution equals 1 because the area under the curve represents the probability (y-axis) of any given number on the x-axis occurring within the defined sample; thus, since these probabilities all represents portions of 100%, they must sum to 1*
 
 
 \textcolor{red}{\textbf{Question 4 (0.5 point): } Using one of the functions described above, sample 10 random numbers from a normal distribution with $\mu = 4$ and $\sigma = 1.5$. Graph a histogram of your sample. Calculate your sample mean ($\bar{X}$).  How close is your sample mean ($\bar{X}$) to the true parameter $\mu$? Calculate your sample standard deviation (s). How close is your sample standard deviation (s) to the true parameter $\sigma$?}
 
 ```{r}
-# Your code here
+numbers <- rnorm(n = 10, mean = 4, sd = 1.5)
+numbers
+mean <- mean(numbers)
+mean
+hist(numbers, breaks = 5)
+sd <- sd(numbers)
+sd
+
 ```
 
-*your answer here*
+*my sample mean (4.1) is relatively close to my true mean (4.5), difference of .4; my sd (1.1) is also relatively close my true sigma value (1.5), difference of .4 *
 
 
 
 \textcolor{red}{\textbf{Question 5 (1 point): } Repeat what you did above, but this time sample 100 random numbers from the distribution, and then repeat this by sampling with n=1,000. What happens to your estimates of $\mu$ and $\sigma$ as sample size increases, and why?}
 
 ```{r}
-# your code here
+numbers <- rnorm(n = 1000, mean = 4, sd = 1.5)
+numbers
+mean <- mean(numbers)
+mean
+hist(numbers, breaks = 50)
+sd <- sd(numbers)
+sd
 ```
 
-*your answer here*
+*as my sample size increased, my estimates got closer to the true parameters. This is because, by sampling more, I am gaining more information about the distribution. Specifically, I am getting more values that exist within this distribution when I sample more, and, consequently, when I average these numbers, my estimate takes into account more data and is then all the more accurate.*
 
 
 \textcolor{red}{\textbf{Question 6 (0.5 point).} For a normal distribution with $\mu = 50$ and $\sigma = 0.5$, calculate the X value at which only $2.5$ percent of the area underneath the curve is to the RIGHT. Confirm this using $pnorm()$. Take a look at the functions I've described at the beginning of the lab and pick the appropriate function. Sketch out the curve first to help you decide how to do this.}
 
 ```{r}
-# Your code here
+qnorm(.025, 50, .5, lower.tail = F)
+pnorm(50.97998, 50, .5, lower.tail = F)
+plot.normal.curve(50, .5, qright = 50.9799)
 ```
 
 

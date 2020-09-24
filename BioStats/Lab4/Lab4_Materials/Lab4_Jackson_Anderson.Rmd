@@ -225,6 +225,14 @@ Use the class' data to see if students can discriminate between Jelly Belly flav
 ```{r}
 jellyDat <- read_csv("~/Repos/School/BioStats/Lab4/Lab4_Materials/JellyBelly.csv")
 
+expect_probabilities <- c(1/6, 5/6)
+expected_frequencies <- nrow(jellyDat) * expect_probabilities
+
+success <- sum(jellyDat$Correct)
+n <- length(jellyDat)
+
+# chisq.test(c(success, n-success)
+
 observed <- c(length(which(jellyDat$Correct == 1))/length(jellyDat$Correct), length(which(jellyDat$Correct == 0))/length(jellyDat$Correct))
 nullProb <- rep(1/2, 2)
 
