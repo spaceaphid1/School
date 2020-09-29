@@ -210,7 +210,8 @@ head(heat)
 \textcolor{red}{\textbf{Question 7 (0.5 point): } Calculate the mean body temperature $(\bar{X})$ of their sample. Print the answer.}
 
 ```{r}
-# your code here
+meanTemp <- mean(heat$temperature, na.rm = T)
+meanTemp
 ```
 
 
@@ -240,23 +241,29 @@ In other words, we subtract the null hypothesis mean from our observed sample me
 \textcolor{red}{\textbf{Question 8 (1 point):} Calculate the t-statistic for your observed data and report it below. It may be useful to define variables like n, SE first, before doing the actual calculation, to avoid having a terribly messy fraction. *Do not use raw numbers; use functions in R to calculate things like n, df, etc.* If you are not sure where to begin, check out the example in the book, on p. 310. Comment your code so I can understand your approach.}
 
 ```{r}
-# your code here
+mean <- mean(heat$temperature)
+sd <- sd(heat$temperature)
+se <- sd/sqrt(length(heat$temperature))
+df <- length(heat$temperature) - 1
+h0 <- 98.6
+t <- (mean - h0) / se
+t
 ```
 
-*your answer here* 
+*The t stat is -0/56* 
 
 \textcolor{red}{\textbf{Question 9 (0.5 point):} Calculate the probability of observing a test statistic as or more extreme as yours, using the function `pt`. It may be helpful to follow along in the book or lecture slides. Report the probability.}
 
 ```{r}
-# your code here
+pt(t, df, lower.tail = F)
 ```
 
-*your answer here*
+*There is a 71% chance of observing the t-stat from our observed data if the null were true (i.e., if the population mean really was 98.6); cannot refute the null*
 
 
 \textcolor{red}{\textbf{Question 10 (1 point):} What does the probability you calculated tell you about the null hypothesis that the average body temperature is 98.6?}
 
-*your answer here*
+*The probability calculated above suggests that the average human body temp is actually 98.6*
 
 
 You just ran a one-sample T-test by hand!! You calculated a test statistic from your observed mean (t), and compared it to a null t-distribution to get a P-value. By now, this theme of hypothesis testing should seem familiar:
@@ -294,10 +301,10 @@ The forester wants to know if the stand of cherry trees she sampled from (the tr
 \textcolor{red}{\textbf{Question 11 (0.5 point):} Use the t.test function to test the null hypothesis that mean cherry tree girth from the stand is 12.5 inches. Interpret the output, making sure to explain what the P-value actually means, and what this indicates about the original question.}
 
 ```{r}
-#your code here
+t.test(trees$Girth, mu = 12.5)
 ```
 
-*Your answer here*
+*there is a 20% chance that we would have observed the sample mean (13.2) if when the population mean is set to 12.5; cannot refute the null*
 
 
 On your own, run the `t.test` function to compute a P-value for the body temperature data. Did you get the same result as when you calculated it hand in Question 9? If you've done it correctly, those numbers should match.
@@ -323,12 +330,13 @@ t.test( x = before, y = after, paired = TRUE)
 # Review/conceptual questions
 \textcolor{red}{\textbf{Question 12 (1 point):} What is the difference between bias and sampling error? Give an example of each.}
 
-*Your answer here*
+*Sampling error represents the inherent error apparent when dealing with random samples of a whole population; these are the errors due to chance alone. Bias on the other hand represents errors that are not due to chance, and are instead due to experimental design; these errors are consistent in how they effect the measured outcomes (systematic)*
 
 \textcolor{red}{\textbf{Question 13 (1 point):.} Alaska is the state with the lowest gender ratio of women to men. 48 percent of Alaskans are female. The freshman class at University of Alaska, Fairbanks has 623 males and 825 females. Is the proportion of males and females different at UAF relative to the rest of the state? Use one of the statistical tests we have learned so far. Report the P-value and test statistic, and interpret the results.}
 
 ```{r}
-# your  code here
+uafPercent <- 825 / (825 + 623)
+
 ```
 
 *your answer here*
