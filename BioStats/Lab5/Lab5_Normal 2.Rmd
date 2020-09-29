@@ -335,11 +335,19 @@ t.test( x = before, y = after, paired = TRUE)
 \textcolor{red}{\textbf{Question 13 (1 point):.} Alaska is the state with the lowest gender ratio of women to men. 48 percent of Alaskans are female. The freshman class at University of Alaska, Fairbanks has 623 males and 825 females. Is the proportion of males and females different at UAF relative to the rest of the state? Use one of the statistical tests we have learned so far. Report the P-value and test statistic, and interpret the results.}
 
 ```{r}
-uafPercent <- 825 / (825 + 623)
+females <- 825
+males <- 623
+uafPop <- males + females
+uafPercent <- c(males/uafPop, females/uafPop)
+
+nullPredictions <- c(.52*uafPop/uafPop, .48*uafPop/uafPop)
+
+
+chisq.test(uafPercent, p = nullPredictions)
 
 ```
 
-*your answer here*
+*p = 0.86, chisq stat = 0.03; based on the results of this test, there is an 86% chance of seeing the observed ratio of sexes at UAF if the null were true; we cannot refute the null hypothesis, and thus the ratio of students at the university traces as expected with that of the state*
 
 
 
