@@ -25,4 +25,4 @@ df <- length(andersonDat) - 1
 
 t <- (mean - 3090) / se
 
-1-pt(-.4, df = 9)#65% chance that we will see our observed mean(3029) if the null were true; should NOT delist otters
+1-pt(t, df = 9)#65% chance that we will see our observed mean(3029) if the null were true; should NOT delist otters
