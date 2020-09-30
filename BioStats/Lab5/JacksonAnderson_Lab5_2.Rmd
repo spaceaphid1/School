@@ -352,7 +352,7 @@ chisq.test(uafObserved, p = nullPredictions)
 
 ```
 
-*p = 0.86, chisq stat = 0.03; based on the results of this test, there is an 86% chance of seeing the observed ratio of sexes at UAF if the null were true; we cannot refute the null hypothesis, and thus the ratio of students at the university traces as expected with that of the state*
+*p = 8.143e-12, chisq stat = 46.731; based on the results of this test, there is an very small chance of seeing the observed ratio of sexes at UAF if the null were true; we can refute the null hypothesis, and thus the ratio of sexes at the university does not trace that of the state*
 
 
 
