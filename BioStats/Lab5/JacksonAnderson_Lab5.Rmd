@@ -1,7 +1,7 @@
 ---
 title: "Lab 5: The Normal Distribution"
-author: "Your name here"
-date: "Date here"
+author: "Jackson Anderson"
+date: "09/29/20"
 output: pdf_document
 ---
 
