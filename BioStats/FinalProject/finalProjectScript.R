@@ -14,12 +14,11 @@ head(richnessDat)
 str(richnessDat)
 
 #'Reformatting the data
-
 richnessDat$FertilizerTreatment <- as.factor(richnessDat$FertilizerTreatment)
 richnessDat$Community <- as.factor(richnessDat$Community)
 
 #'Fert Treatment on total plant Species in given plot
-ggplot(richnessDat, aes(FertilizerTreatment, TotalSpp#)) +
+ggplot(richnessDat, aes(FertilizerTreatment, TotalSppNum)) +
   geom_boxplot()
 
 #'Fert Treatment on total non-clonal plant Species in given plot
@@ -32,4 +31,10 @@ ggplot(richnessDat, aes(`Fertilizer Treatment`, `NC Spp #`)) +
 ggplot(richnessDat, aes(`Fertilizer Treatment`, `Clon Spp #`)) +
   geom_boxplot()
 
+#'Prelim Analysis
+lm_sppNum <- lm(TotalSppNum ~ FertilizerTreatment,
+                data = richnessDat)
 
+summary(lm_sppNum)
+anova(lm_sppNum)#Sig trt effect
+plot(lm_sppNum)
