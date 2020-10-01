@@ -11,6 +11,12 @@ library(lme4)
 richnessDat <- read_excel("~/Repos/School/BioStats/FinalProject/finalProjData.xlsx", 
                             sheet = "Species Richness")
 head(richnessDat)
+str(richnessDat)
+
+#'Reformatting the data
+
+richnessDat <- richnessDat %>%
+  as.factor(`Fertilizer Treatment`)
 
 #'Fert Treatment on total plant Species in given plot
 ggplot(richnessDat, aes(`Fertilizer Treatment`, `Total Spp #`)) +
