@@ -15,11 +15,11 @@ str(richnessDat)
 
 #'Reformatting the data
 
-richnessDat <- richnessDat %>%
-  as.factor(`Fertilizer Treatment`)
+richnessDat$FertilizerTreatment <- as.factor(richnessDat$FertilizerTreatment)
+richnessDat$Community <- as.factor(richnessDat$Community)
 
 #'Fert Treatment on total plant Species in given plot
-ggplot(richnessDat, aes(`Fertilizer Treatment`, `Total Spp #`)) +
+ggplot(richnessDat, aes(FertilizerTreatment, TotalSpp#)) +
   geom_boxplot()
 
 #'Fert Treatment on total non-clonal plant Species in given plot
