@@ -1,0 +1,137 @@
+---
+title: "Lab 6: My Dataset"
+author: "Your Name Here"
+date: "Enter date here"
+output: pdf_document
+subtitle: Enter a brief title/description for your data here
+---
+
+# General Information
+This lab is due Wednesday, October 14th by 11:59 pm and is worth 10 points. You must upload your .rmd file and your knitted PDF to the assignment folder on Canvas.
+
+# Overview of the Independent Project
+Each student will undertake an independent project during the semester. The primary objective is to have students statistically analyze a dataset of their own choosing. Students are encouraged to identify a real dataset that is interesting or meaningful to them, but the dataset must be approved by the instructor to ensure that it will meet the learning objectives of the course. Students, who are unable to find an appropriate dataset should consult with the instructor who will provide them with an appropriate dataset.
+
+The objective is to conduct the analyses necessary to address the outlined hypothesis. The focus will be on understanding the data, developing a model appropriate to answer the question of interest, testing and assessing the model, and interpreting and displaying the results. This will include two assignments. Partway through the semester, students will be asked to turn in a document identifying their chosen dataset, briefly summarizing at least three scientific articles relevant to their topic, and preliminary plots (in R) of their response variable(s) and relationships with selected predictors. The final project will constitute a full report including Statistical Methods, Results, and Graphics in the style of a manuscript being prepared for submission. This means students will have to critically address which results to report, how to report them, and which figures and tables to present. This report will be graded on the basis of statistical practice, quality of reporting, support for interpretation, and quality of figures.
+
+# What is an Appropriate Dataset?
+## Philosophy
+The most important thing is that the dataset addresses a biological question in which you are interested.  Second, the point is NOT to recreate an existing analysis, but to instead discover something new entirely on your own.  So if you choose to use a dataset from a previously published paper, then you will need to use these data in a fresh new way.  The whole point of this exercise is to move beyond 'canned labs' where the results are already known (by the professor at least) and to use the skills that we have learned this semester to discover something entirely new!  In previous courses, I have had some students who have published the results of their independent project in the peer reviewed literature.  This is not my expectation for all projects, but I hope that you will strive to complete novel and impactful work!
+
+## Some specific guidelines
+
+* At least 50 records (or observations or rows)
+
+* A continuous response variable or a discrete response variable (0 or 1; counts; etc)
+
+* At least 5 covariates/predictors (continuous and categorical)
+
+
+## Where should I look for a dataset?
+If you do not already have data from an undergraduate or graduate thesis project then talk to your supervisor or one of your instructors who does research that interests you and ask whether they have data that you might use.  Remember that the goal is to do something new and not to repeat a previous analysis. You can also look for datasets online (e.g. Dryad, FigShare, Ecological Archives, etc). If you still cannot find a dataset then come talk to me. I can provide you with one, but it will be easiest for you if the data already mean something to you and contains variables that you are interested in.  I will also post some possible datasets from the course in previous years as well as some explanations of their variables on Canvas.
+
+# This Assignment
+The goal of this assignment is to make sure that everyone has both a dataset to use for their final project.
+
+## Part A (6 points)
+\textcolor{red}{Provide a brief description of the biology behind your dataset. Who collected the data and for what purpose? What level of biological organization was sampled as the unit of replication (e.g. individual, population, community, ecosystem, etc.)? Were these units sub-sampled?  Were the data collected as part of an experiment or were they observational? How were replicate samples collected (i.e. randomly, systematically, opportunistically)? You do not need to have a research question or hypothesis at this stage.}
+
+*Your answer here*
+
+
+
+## Part B (4 points)
+In the code box below, import your dataset into R. First make sure that your dataset is flat and 2-dimensional. Each row should correspond to a replicate or a sub-replicate and each column should correspond to a variable. There should be only one data file. You might find it easiest to make some changes to your variable names at this point so that they are relatively simple but informative for import into R. 
+
+```{r}
+
+```
+
+Export or save this dataset from its current format to a comma-separated format (filename.csv).  Here is some example code to export the object 'filename' as a csv file called "output_filename.csv":
+```{r}
+# write.csv(filename, "output_filename.csv")
+```
+
+The csv file will be output to your working directory.
+
+In these instructions I will provide examples such as “filename” above. Please name your files and variables in a way that makes most sense to you. My names are just examples.
+
+The point of exporting the csv file is because I will need a csv copy of your dataset in order to check and trouble-shoot your analyses.  Please make sure I have a copy of your up-to-date datafile and do not make any changes to it without either including these in your code (here and in your final project submission) or sending me an updated (modified) file.
+
+Use the summary command to provide descriptive statistics for the variables in your data file.  
+
+```{r}
+
+```
+
+Indicate which variables are dependent (i.e. response) variables (hopefully only one or a few) and which variables are independent (i.e. predictor) variables (hopefully > 5 as indicated in the first lecture).  Indicate which variables, if any, were experimentally applied. For variables that are coded (e.g. Treatment = 1, 2, 3) be sure to indicate what each of these codes represents. Provide units for variables as necessary.
+
+Here is an example from a recent file that I put together:
+
+# Variables and Their Explanations
+
+*id* - A unique identifier for each squirrel
+
+*litter_id* - A unique indentifier for each litter
+
+*Grid* - One of two long-term control study areas (KL = Kloo; SU = Sulphur)
+
+*Sex* - M or F; there is one squirrel of unknown sex
+
+*YearOfBirth* - birth year
+
+*YearOfDeath* - year in which squirrel was last sighted or captured alive.  This might not be a good measure of the year in which the squirrel died and the timing within the year could be quite important.  So I have also included dateE below, which should work better than dyear.
+
+*dateE* - Date on which the squirrel was last seen or captured alive (yyyy-mm-dd).  Squirrel was assumed dead after this point.
+
+*LBS* - total number of offspring born to each squirrel born in the study.
+
+*LRS* - total number of offspring recruited for each recruited squirrel.  In our study recruitment is determined based on survival to 200 days of age.  Because of our seasonal data collection, this requires survival to the following spring when squirrels could have bred for the first time.  Squirrels that did not survive to 200 days of age have LRS = NA.
+
+*birth_conest* - Cone index for the cone crop in the autumn of the year in which the squirrel was born.
+
+*birth_conestm1* - Cone index for the cone crop in the autumn prior to the year in which the squirrel was born.
+
+*birth_density* - spring population density (squirrels/ha.) for the spring in which the squirrel was born.
+
+*mast* - was the squirrel born in a mast year or not? (y or n).
+
+
+*Replace my descriptions with your own*
+
+# Summarizing the data
+
+Indicate the number of rows in your data file by using:
+
+```{r}
+# length(newfilename$variable)
+```
+
+
+If you have factors (i.e. categorical variables) then make sure that they are included as factors.  If not, use the factor command to change them.  
+
+```{r}
+# e.g. newfilename$variable<-factor(newfilename$variable)
+```
+
+Any individual, site or plot identifiers should be factors.  Recall the summary command. Indicate what the variables and their levels mean as above.  
+
+
+# Some Basic Plots
+Provide 2 preliminary plots (in R) of the response variable(s) and/or its relationship with selected predictors. What kind of plot will depend on the type of relationship. These could include a histogram of the distribution (raw or transformed), bivariate scatterplots with numerical predictors, or a stripchart or even mosaic plot for categorical predictors.
+
+```{r}
+
+```
+
+
+Save your R Markdown file and knit a PDF of the file and output.
+
+# What to submit
+
+* A copy of your csv file
+
+* A knitted PDF of your assignment
+
+* A copy of your Rmd file
+
