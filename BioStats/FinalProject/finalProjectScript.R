@@ -254,3 +254,36 @@ qqplotFunc(hyp1_LP_lme)#looks Good
 summary(hyp1_LP_lme)#Large Patch treatments not significantly different from one another (p = .36)
 
 #Plotting: Need to create a besides histogram with each fertilizer treatment as x and spp count as y; besides will be community type. Then, need to aggregate all the mean values for each fertilizer treatment's effect on spp and plot a regression showing difference in declination by community type
+
+
+ggplot(richnessDat, aes(x = factor(FertilizerTreatment, levels = labelOrders), TotalSppNum))+
+  geom_bar(stat = "identity", aes(fill = Community), position = "dodge") +
+  theme_minimal()
+
+
+
+
+#'Redoing paper analysis
+#'
+
+
+
+ggplot(richnessDat, aes(Year, TotalSppNum)) +
+  geom_smooth(aes(col=FertilizerTreatment), method="loess", se = F) +
+  theme_minimal()
+#'The above graph shows how species richness changed over four years by treatment
+
+richnessDat$SppRatio <- richnessDat$NCSppNum / richnessDat$ClonSppNum
+
+ratioDat <- richnessDat %>%
+  filter(!richnessDat$SppRatio == "Inf")
+
+ggplot(ratioDat, aes(FertilizerTreatment, SppRatio)) +
+  geom_bar(stat = "identity", aes(fill = factor(Year)), position = "dodge") +
+  labs(y = "Ratio of Non-Clonal to Clonal Species") +
+  theme_minimal() 
+  
+
+hyp1 <- lm(TotalSppNum ~ FertilizerTreatment*Year, data = hyp1Dat)
+summary(hyp1)
+
