@@ -190,13 +190,135 @@ ggplot(NCDat, aes(ClonBMS, NCBMS)) +
 
 *Steps Moving Forward: I want to address the following questions: 1) Does non-clonal plant biomass differ within each fertilizer plot by community? 2) Does clonal biomass have an effect on non-clonal biomass?*
 
-Save your R Markdown file and knit a PDF of the file and output.
 
-# What to submit
+# Continued Work:
 
-* A copy of your csv file
+Below, I will continue work on this data set
 
-* A knitted PDF of your assignment
+## Focus of the preceding analyses:
+While the original study looked primarily at community composition, I want to take a different approach and investigate whether or not the presence of clonal species acts as a form of stress on non-clonal species. I will use plant biomass as a predictor of perceived stress on behalf of the plant; biomass has been associated with a stress response in plants (support), and thus using this metric as a stress measurement has been supported in the past. Though I cannot take this study to the lengths I might like, I will follow it up with a discussion on how selection might act on the biomass of surviving plants within this experiment, and why this is important. 
 
-* A copy of your Rmd file
+Below are the hypotheses I will be testing to address the following questions: 1) Does non-clonal plant biomass differ within each fertilizer plot by community? 2) Does clonal biomass have an effect on non-clonal biomass?
 
+### Hypothesis 1) Community type (presence of clonal vs no presence) has an effect on non-clonal plant biomass
+
+*Predictions: non-clonal plant biomass will be lower in the mixed community than in the non-mixed community*
+
+*Biological Reasoning: clonal plants are effective at growing and usurping available resources and out-competing cohabitants.* 
+
+### Hypothesis 2) In the mixed community, clonal plant biomass will have an effect on non-clonal plant biomass
+
+*Predictions: There will be an overall decline in non-clonal plant biomass as clonal plant biomass increases; this declination will be more pronounced in small-patch fertilizer treatments based on the recruitment and foraging behavior of clonal plant species in such circumstances, as noted by the paper above*
+
+*Biological Reasoning: clonal plants are effective at growing and usurping available resources and out-competing cohabitants.*
+
+Loading Required Packages:
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(nlme)
+library(lme4)
+library(lattice)
+library(grid)
+library(gridExtra)
+library(car)
+```
+
+# Hypothesis 1: Community type and non-clonal plant biomass
+
+1) Data processing
+
+``` {r}
+#The data
+dat <- read_csv("~/Repos/School/BioStats/Lab6/Richness_and_Biomass_Lab6.csv")
+
+#Parsing
+dat$Community <- as.factor(dat$Community)
+dat$FertilizerTreatment <- as.factor(dat$FertilizerTreatment)
+
+#Subsetting by fertilization treatment
+
+#Control
+controlDat <- dat %>%
+  filter( FertilizerTreatment == "CO")
+#Uniform Fert. Treatment
+unDat <- dat %>%
+  filter( FertilizerTreatment == "UN")
+#Small Patch treatment
+spDat <- dat %>%
+  filter( FertilizerTreatment == "SP")
+#Large Patch treatment
+lpDat <- dat %>%
+  filter( FertilizerTreatment == "LP")
+```
+
+2) Preliminary Visualizations
+```{r}
+#Preliminary visualizations
+
+#Quick prelim vis plotting function
+prelimVisPlots <- function(d1,t1, d2, t2, d3, t3, d4, t4, d5, t5, ylab) {
+  p1 <- ggplot(d1, aes(Community, NCBMS)) +
+    geom_boxplot() +
+    labs(y = ylab) +
+    ggtitle(t1)
+  p2 <- ggplot(d2, aes(Community, NCBMS)) +
+    geom_boxplot() +
+    labs(y = ylab) +
+    ggtitle(t2)
+  p3 <- ggplot(d3, aes(Community, NCBMS)) +
+    geom_boxplot() +
+    labs(y = ylab) +
+    ggtitle(t3)
+  p4 <- ggplot(d4, aes(Community, NCBMS)) +
+    geom_boxplot() +
+    labs(y = ylab) +
+    ggtitle(t4)
+  p5 <- ggplot(d5, aes(Community, NCBMS)) +
+    geom_boxplot() +
+    labs(y = ylab) +
+    ggtitle(t5)
+  
+  gridPlot <- grid.arrange(p1, p2, p3, p4, p5)
+  
+  return(gridPlot)
+}
+
+#Vis
+prelimVisPlots(dat, "Exp. Wide", controlDat, "Control", unDat, "Uniform", spDat, "Small Patch", lpDat, "Large Patch", "nc bms (g m-2)")
+```
+*Graphically, there seems to be a clear difference in non-clonal biomass in each community experiment wide and within each fertilizer treatment*
+
+3) Modeling
+
+## Experiment Wide: Community
+```{r}
+#Experiment wide modeling: testing to see if non-clonal plant biomass in each fertilizer treatmebent differs from the control
+
+#model
+expLM <- lm(NCBMS ~ Community, data = dat)
+#diagnostics plot
+plot(expLM)
+```
+*diagnostics seem fine to me*
+
+```{r}
+summary_expLM <- summary(expLM)
+summary_expLM
+```
+
+*The above model suggests that mean non-clonal biomass in the unmixed community is significantly different than that of the mixed community, where the effect size of presence of clonal species is a 91.3g/m^2 decrease in mean non-clonal plant biomass (p<.001, t = 8.0, DF = 1)*
+
+
+## All Fertilized to Control
+```{r}
+#Subsetting the data: all fertilized treatments being lumped together
+# fertDat <- data.frame(treatment = rep(NA, length(dat$Community)),
+#                       NCBMS =rep(NA, length(dat$Community)))
+# fertDat$treatment[1:length(which(dat$FertilizerTreatment == "CO"))] <- "Control"
+# fertDat$NCBMS[1:length(which(dat$FertilizerTreatment == "CO"))] <- 
+```
+```{r}
+lm()
+```
