@@ -100,6 +100,17 @@ prelimVisPlots(dat, "Exp. Wide", controlDat, "Control", unDat, "Uniform", spDat,
 
 3) Modeling
 
+```{r}
+#creating function to easily run models
+modelFunc <- function (modelName, summaryModellName, summaryNoIntModelName, Data) {
+  modelName <- lm(NCBMS ~ Community, data = Data)
+  summaryModellName <- summary(modelName)
+  summaryNoIntModelName <- summary(lm(NCBMS ~ 0 + Community, data = Data))
+  return(summaryModellName)
+  return(summaryNoIntModelName)
+}
+```
+
 ## Experiment Wide: Community
 ```{r}
 #Experiment wide modeling: testing to see if non-clonal plant biomass in each fertilizer treatmebent differs from the control
@@ -141,7 +152,7 @@ expHyp1_plot
 
 ```
 
-## By Control: Community
+## By Treatment: Control; Community
 ```{r}
 #model
 controlLM <- lm(NCBMS ~ Community, data = controlDat)
@@ -178,3 +189,12 @@ controlHyp1_plot <- ggplot(controlLM_output_df, aes(trt_cat, cat_mean_noint)) +
 controlHyp1_plot
 
 ```
+
+## By Treatment: UN; Community 
+
+```{r}
+modelFunc("unLP", "summary_unLP", "summary_unLP_noint", unDat)
+
+```
+
+*NEED TO DO: Convert all lm's to t.tests*
