@@ -10,11 +10,11 @@ Below are the hypotheses I will be testing to address the following questions: 1
 
 ### Hypothesis 1) Community type (presence of clonal vs no presence) has an effect on non-clonal plant biomass
 
-*Predictions: non-clonal plant biomass will be lower in the mixed community than in the non-mixed community*
+*Predictions: non-clonal plant biomass will be lower in the mixed community than in the non-mixed community across all fertilization treatments*
 
-*Biological Reasoning: clonal plants are effective at growing and usurping available resources and out-competing cohabitants.* 
+*Biological Reasoning: clonal plants are effective at growing and usurping available resources and out-competing cohabitants* 
 
-### Hypothesis 2) In the mixed community, clonal plant biomass will have an effect on non-clonal plant biomass
+### Hypothesis 2) In the mixed community, clonal plant biomass magnitude will have an effect on non-clonal plant biomass magnitude
 
 *Predictions: There will be an overall decline in non-clonal plant biomass as clonal plant biomass increases; this declination will be more pronounced in small-patch fertilizer treatments based on the recruitment and foraging behavior of clonal plant species in such circumstances, as noted by the paper above*
 
@@ -102,13 +102,22 @@ prelimVisPlots(dat, "Exp. Wide", controlDat, "Control", unDat, "Uniform", spDat,
 
 ```{r}
 #creating function to easily run models
-modelFunc <- function (modelName, summaryModellName, summaryNoIntModelName, Data) {
-  modelName <- lm(NCBMS ~ Community, data = Data)
-  summaryModellName <- summary(modelName)
-  summaryNoIntModelName <- summary(lm(NCBMS ~ 0 + Community, data = Data))
-  return(summaryModellName)
-  return(summaryNoIntModelName)
+modelFunc <- function (Data) {
+  t.test(NCBMS ~ Community, data = Data)
 }
+#creating a no-intercept model for plotting
+modelFunc_noint <- function (Data) {
+  t.test(NCBMS ~ 0 + Community, data = Data)
+}
+#creating a function to create a data frame of important stats for plotting
+plotDatFunc <- function(test) {
+  dataFrame <- data.frame(estimates = test$estimate,
+                      std_error = test$stderr)
+  return(dataFrame)
+}
+
+
+
 ```
 
 ## Experiment Wide: Community
@@ -116,7 +125,7 @@ modelFunc <- function (modelName, summaryModellName, summaryNoIntModelName, Data
 #Experiment wide modeling: testing to see if non-clonal plant biomass in each fertilizer treatmebent differs from the control
 
 #model
-expLM <- lm(NCBMS ~ Community, data = dat)
+expLM <- modelFunc(dat)
 #diagnostics plot
 plot(expLM)
 ```
