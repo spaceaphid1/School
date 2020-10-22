@@ -1,0 +1,155 @@
+---
+title: 'Lab 7: Cuckoos'
+author: "Your name here"
+date: "Date here"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# General information
+This lab is due October 28th by 11:59 pm. This lab is worth 10 points (each question is worth 1 point unless otherwise noted). You must upload your .rmd file and knitted PDF to Canvas. You are welcome and encouraged to talk with classmates and ask for help. However, each student should turn in their own lab assignment and all answers, including all code, needs to be solely your own.
+
+# Objective
+The goal of this lab is to run and interpret ANOVA tests, including testing whether assumptions are met and visually interpreting data.
+
+# Background
+The European cuckoo does not look after its own eggs, but instead lays them in the nests of birds of other species. This is known as *brood parasitism*. It has been documented previously that cuckoos have evolved to lay eggs that are colored similarly to the host birds' eggs. Is the same true of size? Do cuckoos lay eggs of different sizes in nests of different hosts? We will investigate this question, using the data file "cuckooeggs.csv". This file contains data on the lengths of cuckoo eggs laid in a variety of other species' nests.
+
+# Exploring the data and testing assumptions
+
+First, read in the datafile "cuckooeggs.csv" and take a look at the data.
+
+\textcolor{red}{\textbf{Question 1} Look at the structure of the cuckoo data. What is the explanatory variable? What is the response variable?}
+
+```{r}
+# your code here
+
+
+
+# code to convert the host-species variable to a "factor", i.e. categorical data
+cuckoos$Host.Species = as.factor(cuckoos$Host.Species) 
+```
+
+*Your answer here* 
+
+
+\textcolor{red}{\textbf{Question 2} How many species of birds were measured in this study? Using the `str` function (on the entire dataframe object) or `levels` function (on the column of interest) is an easy way to check this.}
+
+```{r}
+# your code here
+```
+
+*Your answer here*
+
+
+To test whether the data are distributed normally *within each group*, use a Shapiro-Wilk Normality Test.  You'll need to run a test for each species, meaning you'll want to use the subset function to break up your dataset by species.  Here is one example to get you going...
+
+
+```{r}
+cuckoo_HS<-subset(cuckoos, cuckoos$Host.Species=="Hedge Sparrow")
+
+shapiro.test(cuckoo_HS$Egg.Length)
+
+# Or
+
+shapiro.test(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))
+```
+
+
+Since we haven't used qq-plots in lab yet, below is an example. Tip: recall from earlier labs, you can put multiple commands for drawing an individual plot inside curly braces "\{ \}" to run as a chunk. 
+```{r}
+{qqnorm(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))
+qqline(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))}
+```
+
+
+
+\textcolor{red}{\textbf{Question 3} Using the Shapiro-Wilk test for normality, as well as visual inspection of the data (i.e., plotting), evaluate whether cuckoo egg length data is normally distributed *within each group*. Interpret the output of the test.}
+
+```{r}
+# Your code here
+```
+
+*Your answer here*
+
+
+
+# Running the ANOVA test
+Recall, the purpose of this research was to test whether the eggs laid by cuckoos were larger or smaller depending on which host bird's nest was being parasitized. The theory is, if cuckoos are able to mimic the host bird's own eggs, the host bird is less likely to notice the brood parasitism. 
+
+\textcolor{red}{\textbf{Question 4} Give the null and alternative hypotheses for an ANOVA which tests whether egg length differs between host species.}
+
+*Your answer here*
+
+
+\textcolor{red}{\textbf{Question 5} Run an ANOVA using the function given in lecture slides, and save as a variable. Report the test statistic and P-value.}
+
+```{r}
+# your code here
+```
+
+*Your answer here* 
+
+
+
+\textcolor{red}{\textbf{Question 6} Interpret the results of your ANOVA. In your answer, make sure to re-visit the initial question/experimental background, report the test statistic, and explicitly state what the p-value is the probability of.}
+
+*Your answer here*
+
+
+
+
+\textcolor{red}{\textbf{Question 7} Besides the assumption of independence and random sampling, what are the assumptions of the ANOVA test? Are they met? You will likely need to do additional coding to evaluate all the assumptions. Tip: if you are missing any necessary packages, install them using $install.packages("package name")$ in the console.}
+
+```{r}
+# your code here
+```
+
+*Your answer here*
+
+
+
+# Plotting the data
+Graphical representation of the data will help you interpret the results of an ANOVA. The results of a statistical test should *always* be accompanied by an informative plot. In fact, usually making the plot is the first step you would do, before even running the test. 
+
+Consult the below link describing how to create stripcharts in R: 
+
+https://static1.squarespace.com/static/5eb33c095018927ea433a883/t/5f7a84444450c5069e7bba9e/1601864778198/Plotting-in-R.pdf
+
+\textcolor{red}{\textbf{Question 8} Create a stripchart to display the egg length data from the cuckoo dataset. Remember to label your axes appropriately. Add error bars (sd or se) and points for each species' mean as demonstrated above. You will have to modify example code to account for 6 groups (species) whereas the examples shown above have different numbers of groups.}
+
+```{r}
+# Your code here
+```
+
+
+
+# Post Hoc Tests
+Remember that an ANOVA tells you only whether the means differ among groups, not which exact groups differ from one another. To know which specific groups differ, we need to do post-hoc tests, which compare means among all pairs, accounting for multiple testing. 
+
+The function `TukeyHSD` does pairwise post-hoc tests to compare each pair of species. The basic code is:  `TukeyHSD(yourmodelname)`. The p adj column gives a corrected P-value for that particular comparison.
+
+\textcolor{red}{\textbf{Question 9} Run a Tukey test on the cuckoo ANOVA model (i.e. the variable you saved above). Are eggs laid in Tree-Pipit nests significantly different than those laid in Robin's nests?}
+
+```{r}
+# your code here
+
+```
+
+*Your answer here*
+
+
+\textcolor{red}{\textbf{Question 10} Describe how an F statistic is calculated. What does a large F statistic indicate about your data vs. a small one?}
+
+*Your answer here*
+
+
+# Next steps in research
+
+\textcolor{red}{\textbf{BONUS (optional)} Re-read the original background presented at the beginning of this lab. What might be an experiment you would run, or additional analyses you would want to conduct to further investigate whether variation in cuckoo egg size is actually an adaptation to disguise their eggs from the host?}
+
+*Your answer here*
+
+
