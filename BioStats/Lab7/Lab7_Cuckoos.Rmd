@@ -1,7 +1,7 @@
 ---
 title: 'Lab 7: Cuckoos'
-author: "Your name here"
-date: "Date here"
+author: "Jackson Anderson"
+date: "Oct 22, 2020"
 output: pdf_document
 ---
 
@@ -24,24 +24,31 @@ First, read in the datafile "cuckooeggs.csv" and take a look at the data.
 \textcolor{red}{\textbf{Question 1} Look at the structure of the cuckoo data. What is the explanatory variable? What is the response variable?}
 
 ```{r}
-# your code here
+library(tidyverse)
 
-
-
-# code to convert the host-species variable to a "factor", i.e. categorical data
-cuckoos$Host.Species = as.factor(cuckoos$Host.Species) 
 ```
 
-*Your answer here* 
+```{r}
+# your code here
+cuckoos <- read_csv("~/Repos/School/BioStats/Lab7/cuckooeggs.csv")
+str(cuckoos)
+
+# code to convert the host-species variable to a "factor", i.e. categorical data
+cuckoos$HostSpecies = as.factor(cuckoos$'Host Species') 
+cuckoos$EggLength <- cuckoos$'Egg Length'
+cuckoos <- cuckoos[,-c(1,2)]
+```
+
+*The predictor variable is 'Host Species' and the response is 'Egg Length'* 
 
 
 \textcolor{red}{\textbf{Question 2} How many species of birds were measured in this study? Using the `str` function (on the entire dataframe object) or `levels` function (on the column of interest) is an easy way to check this.}
 
 ```{r}
-# your code here
+str(cuckoos)
 ```
 
-*Your answer here*
+*Six different host species of bird were measured in this study*
 
 
 To test whether the data are distributed normally *within each group*, use a Shapiro-Wilk Normality Test.  You'll need to run a test for each species, meaning you'll want to use the subset function to break up your dataset by species.  Here is one example to get you going...
@@ -60,8 +67,8 @@ shapiro.test(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))
 
 Since we haven't used qq-plots in lab yet, below is an example. Tip: recall from earlier labs, you can put multiple commands for drawing an individual plot inside curly braces "\{ \}" to run as a chunk. 
 ```{r}
-{qqnorm(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))
-qqline(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))}
+{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))
+qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))}
 ```
 
 
@@ -69,10 +76,35 @@ qqline(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))}
 \textcolor{red}{\textbf{Question 3} Using the Shapiro-Wilk test for normality, as well as visual inspection of the data (i.e., plotting), evaluate whether cuckoo egg length data is normally distributed *within each group*. Interpret the output of the test.}
 
 ```{r}
-# Your code here
+#response variable normality testing
+
+#Hedge Sparrow
+shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))#Normal
+{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))/
+qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))}
+#Meadow Pipit
+shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Meadow Pipit"))#Heteroskedastic
+{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Meadow Pipit"))/
+qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Meadow Pipit"))}
+#Pied Wagtail
+shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Pied Wagtail"))#Normal
+{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Pied Wagtail"))/
+qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Pied Wagtail"))}
+#Robin
+shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Robin"))#Normal
+{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Robin"))/
+qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Robin"))}
+#Tree Pipit
+shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Tree Pipit"))#Normal
+{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Tree Pipit"))/
+qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Tree Pipit"))}
+#Wren
+shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Wren"))#Normal
+{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Wren"))/
+qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Wren"))}
 ```
 
-*Your answer here*
+*Egg length response variable is normally distributed within all treatments aside from that of Meadow Pipit, where it was heteroskedastic*
 
 
 
@@ -81,22 +113,24 @@ Recall, the purpose of this research was to test whether the eggs laid by cuckoo
 
 \textcolor{red}{\textbf{Question 4} Give the null and alternative hypotheses for an ANOVA which tests whether egg length differs between host species.}
 
-*Your answer here*
+*Null: Host nest has no effect on Egg length*
+*Alternative: Egg length will differ significantly among host nest*
 
 
 \textcolor{red}{\textbf{Question 5} Run an ANOVA using the function given in lecture slides, and save as a variable. Report the test statistic and P-value.}
 
 ```{r}
-# your code here
+birdAnova <- aov(EggLength ~ HostSpecies, data = cuckoos)
+summary(birdAnova)
 ```
 
-*Your answer here* 
+*There was a significant biological effect; Host Species has a significant effect on Egg Length of parasatized eggs (p<.0001, F= 10.39* 
 
 
 
 \textcolor{red}{\textbf{Question 6} Interpret the results of your ANOVA. In your answer, make sure to re-visit the initial question/experimental background, report the test statistic, and explicitly state what the p-value is the probability of.}
 
-*Your answer here*
+*The results of this test indicate that there Host Species has a significant effect on the size of the parasitized egg that is laid in its nest. These results indicate an overall treatment effect, but do not indicate where this difference is coming from or which treatments contribute to this difference; pairwise comparisons would be needed to garner this information, which at this point seems necessary given the result of the experiment-wide anova. The test statistic (F stat) was 10.39, and our p-value is a probability of getting that test statistic when ______________________*
 
 
 
@@ -134,7 +168,7 @@ The function `TukeyHSD` does pairwise post-hoc tests to compare each pair of spe
 \textcolor{red}{\textbf{Question 9} Run a Tukey test on the cuckoo ANOVA model (i.e. the variable you saved above). Are eggs laid in Tree-Pipit nests significantly different than those laid in Robin's nests?}
 
 ```{r}
-# your code here
+TukeyHSD(birdAnova)
 
 ```
 
