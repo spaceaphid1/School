@@ -67,8 +67,8 @@ To test whether the data are distributed normally *within each group*, use a Sha
 
 Since we haven't used qq-plots in lab yet, below is an example. Tip: recall from earlier labs, you can put multiple commands for drawing an individual plot inside curly braces "\{ \}" to run as a chunk. 
 ```{r}
-{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))
-qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))}
+# {qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))
+# qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))}
 ```
 
 
@@ -80,43 +80,55 @@ qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))}
 
 #Hedge Sparrow
 shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))#Normal
-{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))/
-qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Hedge Sparrow"))}
+hedgeDat <- subset(cuckoos, HostSpecies == "Hedge Sparrow")
+ggplot(hedgeDat, aes(sample = EggLength)) +
+  geom_qq() +
+  geom_qq_line()
 ```
 *Normal*
 ```{r}
 #Meadow Pipit
 shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Meadow Pipit"))#Heteroskedastic
-{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Meadow Pipit"))/
-qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Meadow Pipit"))}
+meadowDat <- subset(cuckoos, HostSpecies == "Meadow Pipit")
+ggplot(meadowDat, aes(sample = EggLength)) +
+  geom_qq() +
+  geom_qq_line()
 ```
 *Heteroskedastic*
 ```{r}
 #Pied Wagtail
 shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Pied Wagtail"))#Normal
-{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Pied Wagtail"))/
-qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Pied Wagtail"))}
+piedDat <- subset(cuckoos, HostSpecies == "Pied Wagtail")
+ggplot(piedDat, aes(sample = EggLength)) +
+  geom_qq() +
+  geom_qq_line()
 ```
 *Normal*
 ```{r}
 #Robin
 shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Robin"))#Normal
-{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Robin"))/
-qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Robin"))}
+robinDat <- subset(cuckoos, HostSpecies == "Robin")
+ggplot(robinDat, aes(sample = EggLength)) +
+  geom_qq() +
+  geom_qq_line()
 ```
 *Normal*
 ```{r}
 #Tree Pipit
 shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Tree Pipit"))#Normal
-{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Tree Pipit"))/
-qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Tree Pipit"))}
+treePipDat <- subset(cuckoos, HostSpecies == "Tree Pipit")
+ggplot(treePipDat, aes(sample = EggLength)) +
+  geom_qq() +
+  geom_qq_line()
 ```
 *Normal*
 ```{r}
 #Wren
 shapiro.test(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Wren"))#Normal
-{qqnorm(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Wren"))/
-qqline(subset(cuckoos$EggLength, cuckoos$HostSpecies=="Wren"))}
+wrenDat <- subset(cuckoos, HostSpecies == "Wren")
+ggplot(wrenDat, aes(sample = EggLength)) +
+  geom_qq() +
+  geom_qq_line()
 ```
 *Normal*
 
