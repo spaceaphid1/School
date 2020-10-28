@@ -55,13 +55,13 @@ To test whether the data are distributed normally *within each group*, use a Sha
 
 
 ```{r}
-cuckoo_HS<-subset(cuckoos, cuckoos$Host.Species=="Hedge Sparrow")
-
-shapiro.test(cuckoo_HS$Egg.Length)
-
-# Or
-
-shapiro.test(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))
+# cuckoo_HS<-subset(cuckoos, cuckoos$Host.Species=="Hedge Sparrow")
+# 
+# shapiro.test(cuckoo_HS$Egg.Length)
+# 
+# # Or
+# 
+# shapiro.test(subset(cuckoos$Egg.Length, cuckoos$Host.Species=="Hedge Sparrow"))
 ```
 
 
