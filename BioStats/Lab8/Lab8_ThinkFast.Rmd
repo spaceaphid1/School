@@ -1,0 +1,162 @@
+---
+title: 'Lab 8: Reaction Times'
+author: "Your name here"
+date: "Date here"
+output:
+  pdf_document: default
+  word_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# General information
+This lab is due November 4th by 11:59 pm. This lab is worth 10 points. You must upload your .rmd file and knitted file to the dropbox on Canvas. You are welcome and encouraged to talk with classmates and ask for help. However, each student should turn in their own lab assignment and all answers, including all code, needs to be solely your own.
+
+# Objective
+The goal of this lab is to design an experiment and collect data to test what factors influence reaction times. You will be collecting data during class time and investigating your hypotheses using the statistical tests you have used in the past. This lab should help prepare you for your independent project, in which you will be choosing appropriate statistical analyses on your own. 
+
+# Experimental design
+In class on Tuesday, you will decide what variables may be associated with increased or decreased reaction time. Come up with 2 continuous variables and 2 categorical variables as a class. We will brainstorm these during class time. 
+
+# Data Collection
+Each person will use the reaction timer at : https://www.humanbenchmark.com/tests/reactiontime. Conduct 5 trial per person and record the average (the website will calculate this for you). We will also collect information on the covariates that you come up with as a class on Tuesday.  These will be entered in a Google Sheet and we will make the csv file available before Thursday's lab.
+
+# Notes on assumptions
+Since we are collecting brand-new data today, it's possible we will collect data that violate some assumptions of statistical tests. For today, and for the purposes of completing this lab, assume that the tests will be robust to these violations. Run them, but *if you notice serious errors with the data, discuss these in your interpretations*.
+
+For your own independent project, don't take this same approach! Rigorously examine whether assumptions are met before proceeding with a given statistical test! 
+
+# Example two-way ANOVA
+Before you analyze the class' dataset, explore the two-way ANOVA, using a built-in dataset in R, called `crabs`. The crabs data frame has 200 rows and 8 columns, describing 5 morphological measurements on 50 crabs each of two species and both sexes. The researchers want to know if sexual dimorphism depends on species.
+
+Let's use the response variable "FL" which is the frontal lobe size in mm. We will test (1) whether sex affects lobe size, (2) whether species (`sp`) affects lobe size and (3) whether there is an interaction between the two.
+
+```{r}
+crabdat <- read.csv("https://raw.githubusercontent.com/vincentarelbundock/Rdatasets/master/csv/MASS/crabs.csv")
+head(crabdat)
+# run the ANOVA
+crab.2.way.anova <- aov(FL ~ sp * sex, data = crabdat)
+# explore output
+summary(crab.2.way.anova)
+# run post-hoc tests to understand group comparisons
+TukeyHSD(crab.2.way.anova)
+```
+
+The output of this test indicates that frontal lobe size significantly differs between species, and that differences between sexes depend on species. If we look at the below quick-n-dirty plot we see that there is little-to-no difference between males and females in the "O" species, but there is a greater difference in the "B" species. This is why the interaction term is significant (P = 0.004) but the fixed effect of sex on its own is not. You could run a one-way ANOVA to confirm that sex, on its own, does not influence frontal lobe size.
+
+```{r, echo=FALSE}
+# quick-n-dirty example for plotting data from a factorial design experiment
+interaction.plot( x.factor = crabdat$sp, 
+                  trace.factor = crabdat$sex, 
+                  response = crabdat$FL,
+                  xlab = "Species", 
+                  ylab = "Frontal Lobe Length", 
+                  trace.label = "        Sex",
+                  col = 1:2)
+```
+
+Below is the same plot, but with the addition of SE bars. Feel free to explore the code below for making an interaction plot. You may be interested in making a similar plot for your independent project, but *it will not be tested in this lab assignment*.
+
+```{r, echo=FALSE}
+stderr <- function(x) sd(x)/sqrt(length(x)) #creates a function to calculate std error
+means <- aggregate(FL ~ sp*sex, data = crabdat, FUN=mean) # calculates mean of each sex * species category
+sderr <- aggregate(FL ~ sp*sex, data = crabdat, FUN= stderr) # calculates standard error of each sex*species category
+
+# set a default colors to use for plotting
+palette(c("firebrick", "goldenrod"))
+
+{interaction.plot(crabdat$sp, crabdat$sex, response = predict(crab.2.way.anova), 
+	 trace.label = "Sex", las = 1, ylab = "Frontal Lobe Length", 
+	 xlab = "Species", ylim = c(12,20), lwd = 1.5, col = 1:2)
+# plot the error bars (2 x SE) for females first (the 1st and 2nd entries in `means`)
+segments( x0 = c(1,2), x1 =c(1,2),
+          y0 = means$FL[1:2] - 2*sderr$FL[1:2], 
+          y1 = means$FL[1:2] + 2* sderr$FL[1:2],
+          col ="firebrick", lwd = 2)
+# plot the error bars for males next (the 3rd and 4th entries in `means`)
+segments( x0 = c(1,2), x1 =c(1,2),
+          y0 = means$FL[3:4] - 2*sderr$FL[3:4], 
+          y1 = means$FL[3:4] + 2*sderr$FL[3:4],
+          col ="goldenrod", lwd = 2)
+}
+```
+
+
+# Analyzing the class data
+Start by reading in our class data (download the csv from the Canvas assignment page, NOT from the google drive directly). Take a look at the object in R using the str() or head() functions to make sure the data look correct. 
+
+```{r}
+# your code here
+```
+
+## Analysis 1
+
+In this analysis, you will use a two-way ANOVA to determine whether *each* categorical variable individually, or interactively, influences reaction time. See the Crab example above for how to run this test.
+
+\textcolor{red}{\textbf{Question 1 (1 point)} Before running the test, what are the null hypotheses for your two-way ANOVA? Be specific, i.e. instead of writing "means of the two groups", you'd want to write (for example) "mean reaction times of breakfast eaters vs. breakfast skippers"} 
+
+*Your answer here*
+
+
+
+\textcolor{red}{\textbf{Question 2 (2 point)} Visualize the data using an interaction plot- without error bars is fine. Run a two-way ANOVA on your data. Report the test statistic, and P-value for *each* hypothesis. }
+
+```{r}
+# first remove missing data from your data frame (otherwise the plot won't work)
+# example: my_data = na.omit(my_data)
+```
+
+*Your answer here*
+
+
+
+\textcolor{red}{\textbf{Question 3 (2 point)} Interpret the output from your 2-way ANOVA. If your ANOVA yielded significant results, you might need to use follow-up tests to help you interpret what the results mean; is a Tukey test applicable, here? Why or why not?  Write your interpretation of the p value, and interpret the results in relation to the original question.}
+
+```{r}
+# your code here, if applicable
+```
+
+*Your interpretation here*
+
+ 
+## Analysis 2
+Next, you will fit a linear model to explore the relationship between one of the continuous predictor variables and the response variable reaction time.
+
+\textcolor{red}{\textbf{Question 4 (1 point)} Fit a linear model between one of the continuous variables and reaction time. Report the test statistic, slope with standard error, and P-value.}
+
+```{r}
+# your code here
+```
+
+*Your answer here* 
+
+
+
+\textcolor{red}{\textbf{Question 5 (1 point)} (a) What was the null hypothesis for the linear regression model? (b) What does the P-value you found represent (e.g. "the probability of...")?}
+
+*Your answer here*
+
+
+\textcolor{red}{\textbf{Question 6 (2 point)} Plot the relationship between the two variables. Even if the linear regression was not significant, for the purpose of this lab, go ahead and add a best fit line to the plot (don't forget that curly braces $\{\ \}$ can be useful for running multiple lines as a single code chunk). See example code in Wynne Moss' helpful 'Plotting in R' guide on StatsTree.org (https://static1.squarespace.com/static/5eb33c095018927ea433a883/t/5f7a84444450c5069e7bba9e/1601864778198/Plotting-in-R.pdf) if you are not sure where to begin. You do not need to add uncertainty estimates to your best fit line.}
+
+```{r}
+# your code here
+```
+
+
+\textcolor{red}{\textbf{Question 7 (1 point)} What does the slope tell you about the relationship between your variables? (e.g. "for every 1 unit increase in X, Y increases by..."). Overall, how confident are you in this relationship?}
+
+*Your answer here*
+
+
+
+
+\textcolor{red}{\textbf{Optional BONUS question (1 point)} Now, suppose we wanted to test whether yoga improves reaction time. We take the 3 students with the slowest reaction times and have them do 15 minutes of yoga. Then we re-test their reaction times. What would you expect to happen to their reaction times and why? What is the issue with the proposed approach?}
+
+*Your answer here*
+
+
+
+
