@@ -88,7 +88,11 @@ segments( x0 = c(1,2), x1 =c(1,2),
 Start by reading in our class data (download the csv from the Canvas assignment page, NOT from the google drive directly). Take a look at the object in R using the str() or head() functions to make sure the data look correct. 
 
 ```{r}
-# your code here
+library(tidyverse)
+```
+```{r}
+reactDat <- read_csv("~/Repos/School/BioStats/Lab8/reaction_time.csv")
+
 ```
 
 ## Analysis 1
@@ -97,28 +101,53 @@ In this analysis, you will use a two-way ANOVA to determine whether *each* categ
 
 \textcolor{red}{\textbf{Question 1 (1 point)} Before running the test, what are the null hypotheses for your two-way ANOVA? Be specific, i.e. instead of writing "means of the two groups", you'd want to write (for example) "mean reaction times of breakfast eaters vs. breakfast skippers"} 
 
-*Your answer here*
+*Null Hypotheses:*
+*1: reaction times among different mouse type users will not differ significantly*
+*2: reaction times among those that game and those that do not will not differ significantly*
+*3: The effect of mouse type on mean reaction time will not depend on whether or not someone is a gamer*
+*4: The effect of gamer status on mean reaction time will not depend on mouse type*
+*5: Reaction times will not depend on the amount of time someone has been awake*
+*6: Reaction times will not depend on the internal body temperature of a person*
+*7: The effect of time awake will on reaction time will not depend on someones internal body temp*
+*8: The effect of internal body temp on reaction time will not depend on how long someone has been awake*
 
 
 
 \textcolor{red}{\textbf{Question 2 (2 point)} Visualize the data using an interaction plot- without error bars is fine. Run a two-way ANOVA on your data. Report the test statistic, and P-value for *each* hypothesis. }
 
 ```{r}
-# first remove missing data from your data frame (otherwise the plot won't work)
-# example: my_data = na.omit(my_data)
+#removing NA's
+reactDat <- na.omit(reactDat)
+#interaction plot
+interaction.plot( x.factor = reactDat$gamer, 
+                  trace.factor = reactDat$mouse_type, 
+                  response = reactDat$mean_reaction_time,
+                  xlab = "Gamer Status", 
+                  ylab = "Reaction Time", 
+                  trace.label = "        Mouse Type")
+```
+```{r}
+gamerAOV <- aov(mean_reaction_time ~ gamer * mouse_type, data = reactDat)
+summary(gamerAOV)
 ```
 
-*Your answer here*
+*There was no significant effect of gamer status on reaction time (F = 0.12, p>.05)*
+*The effect of mouse type on reaction time was significant (F = 4.912, p = .0400)*
+*There was no significant interaction effect between gamer status and mouse type on reaction time (F = .079, p > .05)*
 
 
 
 \textcolor{red}{\textbf{Question 3 (2 point)} Interpret the output from your 2-way ANOVA. If your ANOVA yielded significant results, you might need to use follow-up tests to help you interpret what the results mean; is a Tukey test applicable, here? Why or why not?  Write your interpretation of the p value, and interpret the results in relation to the original question.}
 
 ```{r}
-# your code here, if applicable
+TukeyHSD(gamerAOV)
 ```
 
-*Your interpretation here*
+*There was no significant effect of gamer status on reaction time (F = 0.12, p>.05)*
+*The effect of mouse type on reaction time was significant (F = 4.912, p = .0400)*
+*There was no significant interaction effect between gamer status and mouse type on reaction time (F = .079, p > .05)*
+*No need for further testing of the mouse type hypothesis, as there were only two levels and no interaction effect*
+*TAKEAWAY: Though mean reaction time did not differ significantly between gamer status, it did differ significantly between groups that used different types of mouses. For those that used trackpads_____*
 
  
 ## Analysis 2
