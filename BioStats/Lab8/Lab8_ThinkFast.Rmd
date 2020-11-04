@@ -1,7 +1,7 @@
 ---
 title: 'Lab 8: Reaction Times'
-author: "Your name here"
-date: "Date here"
+author: "Jackson Anderson"
+date: "Nov. 4th, 2020"
 output:
   pdf_document: default
   word_document: default
@@ -104,12 +104,11 @@ In this analysis, you will use a two-way ANOVA to determine whether *each* categ
 *Null Hypotheses:*
 *1: reaction times among different mouse type users will not differ significantly*
 *2: reaction times among those that game and those that do not will not differ significantly*
-*3: The effect of mouse type on mean reaction time will not depend on whether or not someone is a gamer*
-*4: The effect of gamer status on mean reaction time will not depend on mouse type*
+*3: The effect of mouse type on mean reaction time will not depend on whether or not someone is a gamer and vice versa*
 *5: Reaction times will not depend on the amount of time someone has been awake*
 *6: Reaction times will not depend on the internal body temperature of a person*
-*7: The effect of time awake will on reaction time will not depend on someones internal body temp*
-*8: The effect of internal body temp on reaction time will not depend on how long someone has been awake*
+*7: The effect of time awake will on reaction time will not depend on someones internal body temp and vice versa*
+
 
 
 
@@ -147,7 +146,7 @@ TukeyHSD(gamerAOV)
 *The effect of mouse type on reaction time was significant (F = 4.912, p = .0400)*
 *There was no significant interaction effect between gamer status and mouse type on reaction time (F = .079, p > .05)*
 *No need for further testing of the mouse type hypothesis, as there were only two levels and no interaction effect*
-*TAKEAWAY: Though mean reaction time did not differ significantly between gamer status, it did differ significantly between groups that used different types of mouses. For those that used trackpads_____*
+*TAKEAWAY: Though mean reaction time did not differ significantly between gamer status, it did differ significantly between groups that used different types of mouses. As well, there was no significant interaction effect between our predictor variables*
 
  
 ## Analysis 2
@@ -156,28 +155,38 @@ Next, you will fit a linear model to explore the relationship between one of the
 \textcolor{red}{\textbf{Question 4 (1 point)} Fit a linear model between one of the continuous variables and reaction time. Report the test statistic, slope with standard error, and P-value.}
 
 ```{r}
-# your code here
+reactLM <- lm(mean_reaction_time ~ minutes_awake * body_temp, data = reactDat)
+summary(reactLM)
 ```
 
-*Your answer here* 
+*There was no significant effect of minutes awake (p>.05, slope = 2.1, std. error = 34.15, t = .062) or body temperature (p>.05, slope = 27.08, std. error = 79.26, t = .342) on reaction time; likewise, there was no interaction effect between the two continuous predictors on reaction time (p>.05, slope = -.022, std. error = 0.4, t = -.062).* 
 
 
 
 \textcolor{red}{\textbf{Question 5 (1 point)} (a) What was the null hypothesis for the linear regression model? (b) What does the P-value you found represent (e.g. "the probability of...")?}
 
-*Your answer here*
+*a) Null hypotheses: 1) Body temperature will not have an effect on mean reaction time, 2) Minutes awake will not have an effect on mean reaction time, 3) The effect of body temperature on mean reaction time will not depend on minutes awake, and vice versa.*
+
+*The p value we found represents the probability of finding our observed t value for any given relationship within a distribution of t values with the appropriate degrees of freedom*
 
 
 \textcolor{red}{\textbf{Question 6 (2 point)} Plot the relationship between the two variables. Even if the linear regression was not significant, for the purpose of this lab, go ahead and add a best fit line to the plot (don't forget that curly braces $\{\ \}$ can be useful for running multiple lines as a single code chunk). See example code in Wynne Moss' helpful 'Plotting in R' guide on StatsTree.org (https://static1.squarespace.com/static/5eb33c095018927ea433a883/t/5f7a84444450c5069e7bba9e/1601864778198/Plotting-in-R.pdf) if you are not sure where to begin. You do not need to add uncertainty estimates to your best fit line.}
 
 ```{r}
-# your code here
+ggplot(reactDat, aes(log(minutes_awake), mean_reaction_time, col = body_temp)) +
+  geom_point() +
+  geom_smooth(method = "lm", aes(col = body_temp)) +
+  labs(x = "Minutes Awake (log transformed)",
+       y = "Mean Reaction Time",
+       caption = "*Results show no significant relationship*") +
+  ggtitle(label = "Minutes Awake and it's Effect on Mean Reaction Time") +
+  theme_minimal()
 ```
 
 
 \textcolor{red}{\textbf{Question 7 (1 point)} What does the slope tell you about the relationship between your variables? (e.g. "for every 1 unit increase in X, Y increases by..."). Overall, how confident are you in this relationship?}
 
-*Your answer here*
+*The slope of our line shows us how much "mean reaction time" (Y) changes for every unit increase of log transformed "minutes awake" (X). I am quite confident that there is NO relationship, as our p-vals. were insignificant and our Rsq. value was very small.*
 
 
 
