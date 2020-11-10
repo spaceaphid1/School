@@ -30,7 +30,7 @@ Download the ConeHandling.csv file from Canvas and import it into your workspace
 
 ```{r}
 library(tidyverse)
-coneDat <- read_csv("~/Repos/School/BioStats/Lab9/ConeHandling.csv")
+liconeDat <- read_csv("~/Repos/School/BioStats/Lab9/ConeHandling.csv")
 ```
 
 
@@ -198,7 +198,7 @@ summary (model3)
 Since the interaction is marginally significant we will keep it in the model and will not consider the effects of Chirality and Handedness on their own, henceforth.  Write the code for this regression model below, and write out the regression equation for this model on your annotated/commented output as well (i.e. log(Time) = ?? + ??Width + …).  Include the results for this model (not the equation) in your results section.  Remember that cone Width was included as a covariate in the model.
 
 ```{r}
-#Even after the email from Andrew, still a little confused...it sounds like the instructions want us to bascially recode the model above (model3), so thats what I did...?
+#Even after the email from Andrew, still a little confused...it sounds like the instructions want us to basically re-code the model above (model3), so thats what I did...?
 coneModel<-lm( log(Time) ~ Width + Chirality + Handed + Chirality:Handed, 
             data=coneDat, 
             na.action=na.omit)
@@ -211,14 +211,14 @@ summary(coneModel)
 Finally, remember that we had some specific predictions about how cone handling time should differ depending on the chirality of the cone and the handedness of the squirrel.  We predicted that right-handed squirrels should eat sinistral cones faster whereas left-handed squirrels should eat dextral cones faster.  The marginally significant interaction indicates that the effect of chirality does depend on whether the squirrel is left or right-handed but we haven’t looked to see the direction of the effects.  We can do this by using a nifty variation on the plot command
 
 ```{r}
-plot(datafile$Handed:datafile$Chirality, resid(model2))
+plot(coneDat$Handed:coneDat$Chirality, resid(model2))
 ```
 
 Remember that model2 was our model that examined the effect of Width on Time.  So by plotting the residuals of this model with respect to Handedness and Chirality we are looking at the interaction after accounting for the known effects of Width on Time.
 
 \textcolor{red}{\textbf{Question 5 (1 point)} Were the results indicated in the plot as we had suspected?  Did Right-handed squirrels (R) eat sinistral cones (S) faster and did left-handed squirrels (L) eat dextral cones (D) faster?  Remember that the Y axis here is simply a corrected measure of time (i.e. lower values mean less time).} 
 
-*Your answer here*
+*Based on the plot above, it would seem that our predictions were incorrect with regards to right handed squirrels. However, left handed squirrels ate dextral cones faster than they did sinistral cones, so our predictions proved correct in that case*
 
 
 Include this figure in your results and be sure to discuss the direction of the effects.
@@ -230,7 +230,7 @@ You may have noticed that more than one trial was performed per ‘squirrel’ s
 Write one paragraph of methods and one paragraph of results describing the analyses that were performed. The methods should refer only to statistical methods. The results should be brief and should include all necessary statistics (refer to handout on ‘Presenting Results’ on StatsTree https://static1.squarespace.com/static/5eb33c095018927ea433a883/t/5f5798bf35cfcb0f5c373ab3/1599576336508/Presenting+Results.pdf).  Please pay attention to style and try and roughly follow the format of a scientific article.
 
 ## Methods
-*your paragraph here*
+*A generalized linear model (GLM) was used to determine wither squirrel handedness, cone chirality, or a chirality:handedness interaction significantly affected cone husk time; cone width was treated as a covariate within the model framework. The unit of replication was that of the handedness; whether the cone was husked using the right or the left hand. However, it should be noted that each squirrel was responsible for both right- and left-handed husks, and so subsequent analyses were based on these pseudoreplications. Due to slight heteroskedasticity in residual variance within the time variable, it was log transformed. All analyses are based on a log transformed time variable. The GLM and *
 
 ## Results
 *your paragraph here*
