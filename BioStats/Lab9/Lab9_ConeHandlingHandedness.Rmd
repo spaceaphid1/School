@@ -29,40 +29,41 @@ Open R and change your working directory to whatever folder you have been using 
 Download the ConeHandling.csv file from Canvas and import it into your workspace.
 
 ```{r}
-# your code here
+library(tidyverse)
+coneDat <- read_csv("~/Repos/School/BioStats/Lab9/ConeHandling.csv")
 ```
 
 
 Check to make sure that datafile was imported correctly.  There should be 7 variables
 ```{r}
-length(datafile)
+length(coneDat)
 ```
 
 …that are named (Squirrel, Trial, Length, Width, Handed, Chirality and Time)
 ```{r}
-names (datafile)
+names (coneDat)
 ```
 
 Also check that there are 39 rows of data.
 ```{r}
-length(datafile$Trial)
+length(coneDat$Trial)
 ```
 
 Summarize the data using:
 ```{r}
-summary (datafile)
+summary (coneDat)
 ```
 We will convert Squirrel, Handed and Chirality into factors. 
 ```{r}
-datafile$Squirrel<-as.factor(datafile$Squirrel)
-datafile$Handed<-as.factor(datafile$Handed)
-datafile$Chirality<-as.factor(datafile$Chirality)
+coneDat$Squirrel<-as.factor(coneDat$Squirrel)
+coneDat$Handed<-as.factor(coneDat$Handed)
+coneDat$Chirality<-as.factor(coneDat$Chirality)
 
 ```
 
 
 ```{r}
-summary(datafile)
+summary(coneDat)
 ```
 
 Notice the names of my “squirrels”.  The codes for Handed correspond to cones that were husked in a left-handed (L) or right-handed (R) way. Chirality refers to whether the bracts on the cone were configured in a dextral (D) or sinistral (S) direction. Recall that Time refers to the length of time taken to completely husk the cone and is measured in seconds. The Length and Width of the cone are measured in mm. Width seems to work better here as a measure of size so we will use that from here on. Trial also was not a very good predictor of cone handling time suggesting that my squirrels did not improve with practice! We will not consider it further.
@@ -70,7 +71,8 @@ Notice the names of my “squirrels”.  The codes for Handed correspond to cone
 What is the mean width of cones? Calculate it. 
 And calculate the se for the width of cones as
 ```{r}
-sd(datafile$Width)/sqrt(length(datafile$Width))
+meanConeWidth <- mean(coneDat$Width)
+seWidth <- sd(coneDat$Width)/sqrt(length(coneDat$Width))
 ```
 
  > 
@@ -78,7 +80,9 @@ sd(datafile$Width)/sqrt(length(datafile$Width))
 What was the average length of time needed to “eat” a cone? As practice, calculate the se for the length of time needed to eat a cone
 
 ```{r}
-# your code here
+meanTime <- mean(coneDat$Time)
+seTime <- sd(coneDat$Time)/sqrt(length(coneDat$Time))
+seTime
 ```
 
 
@@ -87,21 +91,20 @@ Include these basic descriptive statistics at the start of your results section,
 # Exploratory Graphical Analysis
 We suspect that there might be a relationship between the width of the cone and the length of time taken to eat it. Explore this graphically first…
 ```{r}
-plot(datafile$Width, datafile$Time)
+plot(coneDat$Width, coneDat$Time)
 ```
 
 Does the plot look linear?
 Try adding a line
 ```{r}
-{plot(datafile$Width, datafile$Time)
-abline(lm(Time~Width, data = datafile))}
+plot(coneDat$Width, coneDat$Time, abline(lm(Time~Width, data = coneDat)))
 ```
 
 >
 
 It looks like the line underestimates Time for large cones.  We will make a simple model and check the diagnostics for this relationship.
 ```{r}
-model<-lm(Time~Width, data = datafile)
+model<-lm(Time~Width, data = coneDat)
 ```
 
 
@@ -113,7 +116,7 @@ plot(model)
 
 For practice, comment on how these diagnostic plots look.  Does the error in the model increase with fitted values?  Do the data look normal in the qq plot?}} 
 
-*Your answer here*
+*There seems to be a slight increase in residual values with an increase in fitted values; overall, through, the distribution of residuals around 0 does not really bother me. There does not seem to be too much deviation of resid values for the qqplot; however, as resid values get more extreme, they do tend to skew a little, speficially in the positive direction*
 
  Supplement this analysis with a histogram of the residuals
 ```{r}
@@ -121,11 +124,12 @@ hist(resid(model))
 ```
 
 Do the residuals look normal?
+*There is a skew towards the positive end of the residual spectrum*
 
 
 The positive skew suggests that a log transformation might be a good idea.
 ```{r}
-model2<-lm(log(Time)~Width, data = datafile)
+model2<-lm(log(Time)~Width, data = coneDat)
 hist(resid(model2))
 ```
 
@@ -145,12 +149,12 @@ summary(model2)
 
 \textcolor{red}{\textbf{Question 1 (1 point)} Is Width a significant predictor of handling time?  Include these results in your results write-up (below).  Was it a positive or a negative relationship?} 
 
-*Your answer here*
+*Width had a significant effect on time, in this model (p<.001); the relationship was positive*
 
 
 \textcolor{red}{\textbf{Question 2 (1 point)} What is the regression equation for log(Time) (i.e. log(Time) = ?? + ?? Width)?} 
 
-*Your answer here*
+*The regression equation is: log(time) = 2.655 + 0.1462Width*
 
 
 ## Interaction Model
@@ -158,7 +162,7 @@ So it will be important to consider the confounding effect of Width when testing
 
 ```{r}
 model3<-lm( log(Time) ~ Width + Chirality + Handed + Chirality:Handed, 
-            data=datafile, 
+            data=coneDat, 
             na.action=na.omit) 
 ```
 
@@ -166,12 +170,17 @@ model3<-lm( log(Time) ~ Width + Chirality + Handed + Chirality:Handed,
 Check the diagnostics for this new model as we did above for model and model2, including a histogram of the residuals.  
 
 ```{r}
-# your code here
+#Diagnostics
+plot(model3)
+```
+```{r}
+#histogram
+hist(resid(model3))
 ```
 
 \textcolor{red}{\textbf{Question 3 (1 point)} Do the residuals look normal?  Are there signs of heteroscedasticity?  Do any observations stand out as potential outliers?} 
 
-*Your answer here*
+*Residual distribution looks relatively normal; not concerning. There is a slight skew towards positive residual values, but nothing that is warrants concern. Observations 2, 4, and 31 are potential outliers*
   
 The absolute values of these Cook’s distances are not large so we will proceed.  You do not need to include the details of these diagnostics in your methods section but should state which assumptions were examined.
 
@@ -182,17 +191,21 @@ summary (model3)
 
 \textcolor{red}{\textbf{Question 4 (1 point)} Was there a consistent effect of chirality on cone handling time or did this effect depend on handedness of the squirrels? How much of the variation in cone handling time is explained by this model?  Which statistics refer to the significance of the model as a whole and which refer just to specific variables in the model?} 
 
-*Your answer here*
+*The effect of chirality on handling time is dependent on the level of handedness in squirrel; the interaction effect was marginally significant (p = .051). Approximately 50% of the variation in handling time is explained by this model and it's complications. The p value of 8.643e-05, or the model p value, describes the significance of this entire model, while each variable or interaction effect p-value indicates that variable's effect on Handling time.*
 
 
 
 Since the interaction is marginally significant we will keep it in the model and will not consider the effects of Chirality and Handedness on their own, henceforth.  Write the code for this regression model below, and write out the regression equation for this model on your annotated/commented output as well (i.e. log(Time) = ?? + ??Width + …).  Include the results for this model (not the equation) in your results section.  Remember that cone Width was included as a covariate in the model.
 
 ```{r}
-# your code goes here
+#Even after the email from Andrew, still a little confused...it sounds like the instructions want us to bascially recode the model above (model3), so thats what I did...?
+coneModel<-lm( log(Time) ~ Width + Chirality + Handed + Chirality:Handed, 
+            data=coneDat, 
+            na.action=na.omit)
+summary(coneModel)
 ```
 
-
+*The regression equation for this model is: log(time) = 2.831 = .141xWidth - .33xChirality - .07xHanded + .361xChirality:Handed. Overall, this model significantly accounted for the variation seen in the response variable with its several complications. The effect of cone width on handeling time was signficant, as stated above (p<.001); chirality had a significant effect on handling time (p<.05), while handedness did not; the interaction effect of chirality on handedness on handeling time was marginally significant (p=.0513), and thus the effect of chirality on handling time is dependent on handedness of the squirrel. *
 ## Direction of Effects - Graphics
 
 Finally, remember that we had some specific predictions about how cone handling time should differ depending on the chirality of the cone and the handedness of the squirrel.  We predicted that right-handed squirrels should eat sinistral cones faster whereas left-handed squirrels should eat dextral cones faster.  The marginally significant interaction indicates that the effect of chirality does depend on whether the squirrel is left or right-handed but we haven’t looked to see the direction of the effects.  We can do this by using a nifty variation on the plot command
