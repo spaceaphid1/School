@@ -1,0 +1,230 @@
+---
+title: "Lab 9: Cone Handling Handedness"
+author: "Andrew McAdam"
+date: "04/11/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# General Information
+This lab is due November 11th by 11:59 pm. This lab is worth 10 points. You must upload your .rmd file and knitted file to the dropbox on Canvas. You are welcome and encouraged to talk with classmates and ask for help. However, each student should turn in their own lab assignment and all answers, including all code, needs to be solely your own.
+
+# Objective
+The goal of this assignment is to give you hands on experience performing general linear model analyses using R. This is not designed to be a quiz of your knowledge of commands in R. I will provide fairly detailed instructions on the code for performing specific analyses, but you will be required to interpret the output from R. Future assignments will contain progressively less detailed instructions on R commands. You will also be asked to write a paragraph of methods and results to give you practice reporting statistical results and to consider how these analyses relate to the data that you will analyse for your independent project.
+
+# Biological Background
+Believe it or not there are both left and right-handed red squirrels!  Right-handed squirrels eat spruce cones by holding the cone primarily in their left hand but all the spinning of the cone with their right hand.  Left-handed squirrels do all the spinning with their left hand. Even more intriguing is the fact that there are both dextral and sinistral spruce cones! That is, some spruce cones have scales that spiral in one direction, while other cones spiral in the other direction. This led me to the hypothesis that there might be some sort of coevolution between squirrel handedness and chirality (the direction of spiraling) in spruce cones. One of the first tests of the hypothesis would be to see whether right-handed squirrels eat sinistral cones faster than dextral cones whereas left-handed squirrels eat dextral cones faster than sinistral cones.
+	It takes a long time to collect these sorts of data with squirrels and it is hard to control for the confounding effect of the size of the cone so I conducted some preliminary experiments using some simulated squirrels (field assistants). The assistants did not actually eat the cones but they were instructed to husk the cones as quickly as possible using either a left- or right-handed technique similar to squirrels. The time taken to husk the entire cone was recorded and I provided a competitive atmosphere to try and give them extra motivation. The length (mm) and width (mm) of each cone was measured to account for variation in husking time that was due to the size of the cone. I also recorded the trial number for each “squirrel” in case they got better with more experience. The data from this experiment are included in the comma separated file “ConeHandling2.csv” on Canvas.
+
+# General Instructions
+In this assignment you will be required to do three things. First, follow the detailed instructions to perform the following analyses using R using this R Markdown file. Be sure to carefully annotate/comment this file with your own personal notes explaining what was done and what the output means as well as answering the questions contained within the specific instructions. At the end of this document, write one paragraph of methods and one paragraph of results describing the analyses that were performed. The methods should refer only to statistical methods. The results should be brief and should include all necessary statistics (refer to handout on ‘Presenting Results’ on StatsTree https://static1.squarespace.com/static/5eb33c095018927ea433a883/t/5f5798bf35cfcb0f5c373ab3/1599576336508/Presenting+Results.pdf).  Please pay attention to style and try and roughly follow the format of a scientific article.
+
+# Specific Instructions:
+Open R and change your working directory to whatever folder you have been using for this class using either the menu or using the setwd() command. 
+
+## Importing the Data and Basic Descriptive Statistics
+Download the ConeHandling.csv file from Canvas and import it into your workspace.
+
+```{r}
+# your code here
+```
+
+
+Check to make sure that datafile was imported correctly.  There should be 7 variables
+```{r}
+length(datafile)
+```
+
+…that are named (Squirrel, Trial, Length, Width, Handed, Chirality and Time)
+```{r}
+names (datafile)
+```
+
+Also check that there are 39 rows of data.
+```{r}
+length(datafile$Trial)
+```
+
+Summarize the data using:
+```{r}
+summary (datafile)
+```
+We will convert Squirrel, Handed and Chirality into factors. 
+```{r}
+datafile$Squirrel<-as.factor(datafile$Squirrel)
+datafile$Handed<-as.factor(datafile$Handed)
+datafile$Chirality<-as.factor(datafile$Chirality)
+
+```
+
+
+```{r}
+summary(datafile)
+```
+
+Notice the names of my “squirrels”.  The codes for Handed correspond to cones that were husked in a left-handed (L) or right-handed (R) way. Chirality refers to whether the bracts on the cone were configured in a dextral (D) or sinistral (S) direction. Recall that Time refers to the length of time taken to completely husk the cone and is measured in seconds. The Length and Width of the cone are measured in mm. Width seems to work better here as a measure of size so we will use that from here on. Trial also was not a very good predictor of cone handling time suggesting that my squirrels did not improve with practice! We will not consider it further.
+
+What is the mean width of cones? Calculate it. 
+And calculate the se for the width of cones as
+```{r}
+sd(datafile$Width)/sqrt(length(datafile$Width))
+```
+
+ > 
+
+What was the average length of time needed to “eat” a cone? As practice, calculate the se for the length of time needed to eat a cone
+
+```{r}
+# your code here
+```
+
+
+Include these basic descriptive statistics at the start of your results section, but remember to focus on biology and not statistics.
+
+# Exploratory Graphical Analysis
+We suspect that there might be a relationship between the width of the cone and the length of time taken to eat it. Explore this graphically first…
+```{r}
+plot(datafile$Width, datafile$Time)
+```
+
+Does the plot look linear?
+Try adding a line
+```{r}
+{plot(datafile$Width, datafile$Time)
+abline(lm(Time~Width, data = datafile))}
+```
+
+>
+
+It looks like the line underestimates Time for large cones.  We will make a simple model and check the diagnostics for this relationship.
+```{r}
+model<-lm(Time~Width, data = datafile)
+```
+
+
+## Regression Diagnostics
+Check the diagnostics using
+```{r}
+plot(model)
+```
+
+For practice, comment on how these diagnostic plots look.  Does the error in the model increase with fitted values?  Do the data look normal in the qq plot?}} 
+
+*Your answer here*
+
+ Supplement this analysis with a histogram of the residuals
+```{r}
+hist(resid(model))
+```
+
+Do the residuals look normal?
+
+
+The positive skew suggests that a log transformation might be a good idea.
+```{r}
+model2<-lm(log(Time)~Width, data = datafile)
+hist(resid(model2))
+```
+
+Assess the rest of the diagnostics.
+```{r}
+plot(model2)
+```
+
+These residuals look a bit better. We’ll come back to this at the end. Include this transformation in your methods and don’t forget that we are dealing with log(Time) from now on.  
+
+
+## glm Results
+We can now look at the results of the model
+```{r}
+summary(model2)
+```
+
+\textcolor{red}{\textbf{Question 1 (1 point)} Is Width a significant predictor of handling time?  Include these results in your results write-up (below).  Was it a positive or a negative relationship?} 
+
+*Your answer here*
+
+
+\textcolor{red}{\textbf{Question 2 (1 point)} What is the regression equation for log(Time) (i.e. log(Time) = ?? + ?? Width)?} 
+
+*Your answer here*
+
+
+## Interaction Model
+So it will be important to consider the confounding effect of Width when testing for effects of Chirality and Handedness. So, we are now ready to test for the effects that we are really interested in. Remember that our hypothesis is that the time taken to eat a cone does not just depend on the chirality of the cone, but that this “chirality effect” depends on whether the squirrel is left- or right-handed. That is, we are interested in testing for an interaction between handedness and chirality. We also want to control for effects of the size of the cone (Width). We will therefore define the following linear model.
+
+```{r}
+model3<-lm( log(Time) ~ Width + Chirality + Handed + Chirality:Handed, 
+            data=datafile, 
+            na.action=na.omit) 
+```
+
+
+Check the diagnostics for this new model as we did above for model and model2, including a histogram of the residuals.  
+
+```{r}
+# your code here
+```
+
+\textcolor{red}{\textbf{Question 3 (1 point)} Do the residuals look normal?  Are there signs of heteroscedasticity?  Do any observations stand out as potential outliers?} 
+
+*Your answer here*
+  
+The absolute values of these Cook’s distances are not large so we will proceed.  You do not need to include the details of these diagnostics in your methods section but should state which assumptions were examined.
+
+You can now proceed to assess the significance of the model. 
+```{r}
+summary (model3)
+```
+
+\textcolor{red}{\textbf{Question 4 (1 point)} Was there a consistent effect of chirality on cone handling time or did this effect depend on handedness of the squirrels? How much of the variation in cone handling time is explained by this model?  Which statistics refer to the significance of the model as a whole and which refer just to specific variables in the model?} 
+
+*Your answer here*
+
+
+
+Since the interaction is marginally significant we will keep it in the model and will not consider the effects of Chirality and Handedness on their own, henceforth.  Write the code for this regression model below, and write out the regression equation for this model on your annotated/commented output as well (i.e. log(Time) = ?? + ??Width + …).  Include the results for this model (not the equation) in your results section.  Remember that cone Width was included as a covariate in the model.
+
+```{r}
+# your code goes here
+```
+
+
+## Direction of Effects - Graphics
+
+Finally, remember that we had some specific predictions about how cone handling time should differ depending on the chirality of the cone and the handedness of the squirrel.  We predicted that right-handed squirrels should eat sinistral cones faster whereas left-handed squirrels should eat dextral cones faster.  The marginally significant interaction indicates that the effect of chirality does depend on whether the squirrel is left or right-handed but we haven’t looked to see the direction of the effects.  We can do this by using a nifty variation on the plot command
+
+```{r}
+plot(datafile$Handed:datafile$Chirality, resid(model2))
+```
+
+Remember that model2 was our model that examined the effect of Width on Time.  So by plotting the residuals of this model with respect to Handedness and Chirality we are looking at the interaction after accounting for the known effects of Width on Time.
+
+\textcolor{red}{\textbf{Question 5 (1 point)} Were the results indicated in the plot as we had suspected?  Did Right-handed squirrels (R) eat sinistral cones (S) faster and did left-handed squirrels (L) eat dextral cones (D) faster?  Remember that the Y axis here is simply a corrected measure of time (i.e. lower values mean less time).} 
+
+*Your answer here*
+
+
+Include this figure in your results and be sure to discuss the direction of the effects.
+
+You may have noticed that more than one trial was performed per ‘squirrel’ so that the current analysis is pseudoreplicated.  This is the reason why the residuals do not seem to meet the assumptions of normality and homoscedasticity as well as we might like. In a future assignment we will analyze these same data and correct for this sub-sampling.
+
+
+\textcolor{red}{\textbf{Your Methods and Results Sections (3 points)}} 
+Write one paragraph of methods and one paragraph of results describing the analyses that were performed. The methods should refer only to statistical methods. The results should be brief and should include all necessary statistics (refer to handout on ‘Presenting Results’ on StatsTree https://static1.squarespace.com/static/5eb33c095018927ea433a883/t/5f5798bf35cfcb0f5c373ab3/1599576336508/Presenting+Results.pdf).  Please pay attention to style and try and roughly follow the format of a scientific article.
+
+## Methods
+*your paragraph here*
+
+## Results
+*your paragraph here*
+
+
+\textcolor{red}{\textbf{Your Data (2 points)}} 
+Write a couple of sentences that describe the ways in which your own dataset is similar to this one. What is your replicate that would be analogous to a trial? Is this a sub-sample of some larger variable that would be equivalent to the squirrels here? What are your categorical and continuous variables that would be equivalent to Chirality, Handed or cone Width? Are you likely to investigate a similar interaction? 
+
+*write about your data here*
+
