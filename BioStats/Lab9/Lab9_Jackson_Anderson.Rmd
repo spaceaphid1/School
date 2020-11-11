@@ -1,7 +1,7 @@
 ---
 title: "Lab 9: Cone Handling Handedness"
-author: "Andrew McAdam"
-date: "04/11/2020"
+author: "Jackson Anderson"
+date: "11/11/20"
 output: pdf_document
 ---
 
@@ -29,8 +29,8 @@ Open R and change your working directory to whatever folder you have been using 
 Download the ConeHandling.csv file from Canvas and import it into your workspace.
 
 ```{r}
-library(tidyverse)
-liconeDat <- read_csv("~/Repos/School/BioStats/Lab9/ConeHandling.csv")
+library(tidyverse) 
+coneDat <- read_csv("~/Repos/School/BioStats/Lab9/ConeHandling.csv")
 ```
 
 
@@ -233,11 +233,11 @@ Write one paragraph of methods and one paragraph of results describing the analy
 *A generalized linear model (GLM) was used to determine wither squirrel handedness, cone chirality, or a chirality:handedness interaction significantly affected cone husk time; cone width was treated as a covariate within the model framework. The unit of replication was that of the handedness; whether the cone was husked using the right or the left hand. However, it should be noted that each squirrel was responsible for both right- and left-handed husks, and so subsequent analyses were based on these pseudoreplications. Due to slight heteroskedasticity in residual variance within the time variable, it was log transformed. All analyses are based on a log transformed time variable. The GLM and *
 
 ## Results
-*Within our GLM, our predictor values accounted for a significant amount of the variation in cone handling time (F(4,34) = 8.32, p<.0.001, se = 0.28)). The mean time to husk a cone, regardless of squirrel handedness, was 115 seconds with a standard error of 6.82 seconds. While cone handling time was not significantly affected by cone chirality (p<.05) or squirrel handedness (p<.05), the interaction effect between the two was significant; left-handed squirrels husked dextral cones faster than they did sinistral cones, while right handed squirrels husked sinistral cones faster than dextral cones (t(34) = 2.02, p = 0.0513, se = 0.18) (See Figure Below). *
+*Within our GLM, our predictor values accounted for a significant amount of the variation in cone handling time (F(4,34) = 8.32, p<0.001, se = 0.28)). The mean time to husk a cone, regardless of squirrel handedness, was 115 seconds with a standard error of 6.82 seconds. While cone handling time was not significantly affected by cone chirality (p<.05) or squirrel handedness (p<.05), the interaction effect between the two was significant; left-handed squirrels husked dextral cones faster than they did sinistral cones, while right handed squirrels husked sinistral cones faster than dextral cones (t(34) = 2.02, p = 0.0513, se = 0.18) (See Figure Below). *
 ```{r}
 plot(coneDat$Handed:coneDat$Chirality, resid(model2))
 ```
-*Cone width also proved to be a significant covariate with regards to effects on handling time (t(34) = 4.65, p < .001, se = 0.03)*
+*Cone width also proved to be a significant covariate with regards to effects on handling time (t(34) = 4.65, p < 0.001, se = 0.03)*
 ```{r}
 plot(coneDat$Width, coneDat$Time, abline(lm(Time~Width, data = coneDat)))
 ```
