@@ -59,6 +59,9 @@ spDat <- dat %>%
 #Large Patch treatment
 lpDat <- dat %>%
   filter( FertilizerTreatment == "LP")
+
+blah <- aov(TotalSppNum ~ Community, data = dat)
+summary(blah)
 ```
 
 2) Preliminary Visualizations
@@ -207,3 +210,102 @@ modelFunc("unLP", "summary_unLP", "summary_unLP_noint", unDat)
 ```
 
 *NEED TO DO: Convert all lm's to t.tests*
+
+
+# Hypothesis 2:  In the mixed community, clonal plant biomass magnitude will have an effect on non-clonal plant biomass magnitude
+
+1) Data Processing and Parsing:
+
+```{r}
+#Loading the data
+dat <- read_csv("~/Repos/School/BioStats/Lab6/Richness_and_Biomass_Lab6.csv")
+
+#Converting characters to factors
+dat$Community <- as.factor(dat$Community)
+dat$FertilizerTreatment <- as.factor(dat$FertilizerTreatment)
+dat$Block <- as.factor(dat$Block)
+dat$Year <- as.factor(dat$Year)
+
+#filtering by the mixed community type
+mixedDat <- dat %>%
+  filter(Community == "mixed")
+
+#checking strucutre of the data
+str(mixedDat)
+
+#Viewing data
+view(mixedDat)
+
+
+
+```
+
+2) Preliminary Data Visualization
+
+```{r}
+
+#Vis. of clonal biomass as predictor of non-clonal biomass
+ggplot(mixedDat, aes(ClonBMS, NCBMS)) +
+  geom_point(aes(col = Year)) +
+  geom_smooth(method = "loess") +
+  labs(x = "Clonal Biomass", y = "Non-Clonal Biomass")
+
+```
+*It seems like there may be a relationship here. Further analysis and the inclusion of other variables will likely add depth to this relationship!*
+
+2) Modeling and Diagnostics
+
+```{r}
+#distribution of response variable
+shapiro.test(mixedDat$NCBMS)#shapiro wilks test indicates normally distributed response variable
+
+#visual inspection of response variable
+ggplot(mixedDat, aes(sample = NCBMS)) +
+  geom_qq() + 
+  geom_qq_line()
+
+
+```
+
+*Both a shapiro wilks test and a visual inspection suggest our response variable is distributed normally*
+
+a) Modeling
+
+```{r}
+#Basic linear model
+basicLM <- lm(NCBMS ~ ClonBMS, data = mixedDat)
+summary(basicLM)
+```
+
+```{r}
+#model Diagnostics
+plot(basicLM)
+```
+*There seems to be slight heteroskedasticity within residual variances; will try log transformation to see if looks any better*
+
+```{r}
+#log transformed model and diagnostics
+basicLM_log <- lm(log(NCBMS) ~ ClonBMS, data = mixedDat)
+shapiro.test(basicLM_log$residuals)
+plot(basicLM_log)
+
+```
+*This looks much better; will proceed with further additional complications to this model below*
+
+
+*Basic Model results: A basic linear model suggests that clonal plant biomass has an effect on the non clonal plant biomass within the mixed community*
+
+b) more variables!
+
+```{r}
+#Checking to see if experimental design factor ("Block") has effect on our predictor variable
+blockInteraction_lm <- lm(log(NCBMS) ~ ClonBMS + Block + ClonBMS:Block, data = mixedDat)
+summary(blockInteraction_lm)
+```
+*The results of the above model suggest that, in the case of the 8th block, the effect of Clonal Plant biomass on non-clonal plant biomass depends on the level of that block; our observed effect did not differ significantly among other blocks. In the case of the 8th block, clonal plant biomass had a significantly lesser effect on non-clonal plant biomass relative the same effect within other blocks. In order to accommodate for this, we will removed all data points associated with block 8 from our data set*
+
+```{r}
+lm_allVars <- lm(log(NCBMS) ~ ClonBMS + Block + FertilizerTreatment + Year + ClonBMS*Block + ClonBMS*FertilizerTreatment + ClonBMS*Year, data = mixedDat)
+summary(lm_allVars)
+```
+*There's a lot to digest here. First thing that stands out the most is that, when holding all other variables constant, the biomass of non-clonal plants increased significantly from 2006 to 2008. This suggests that, as time progressed, our hypothesized effect became less apparent. This is important given that clonal plant biomass significantly decreased in 2008, and this decrease is dependent on both the change in year and the increase in non-clonal plant biomass with time. Second, there did not appear to be any other significant effect or interaction effect between predictors on non-clonal plant biomass, aside from that of clonal plant biomass. This suggests that, of all the predictor variables and their potential interaction effects, clonal plant biomass is the strongest predictor and, aside from year, accounts for a large amount of the variation seen in non-clonal plant biomass. In summary, we can see a significant decrease in non-clonal plant biomass as clonal plant biomass increases, suggesting that the strong foraging and resource acquisition potential of clonal plants in habitats of spatial/resource heterogeneity is a significant form of stress on non-clonal plant species. Though this is not supported by this analysis in any way, shape, or form, given that we saw a higher average non-clonal plant biomass in 2008 relative to 2006, this suggests that these surviving plants experienced less stress and had a relative higher fitness, suggesting that there may be selection at work in such circumstances. Again, no proof, just a thought.*
