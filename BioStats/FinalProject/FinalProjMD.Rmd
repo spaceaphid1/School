@@ -246,7 +246,8 @@ view(mixedDat)
 
 #Vis. of clonal biomass as predictor of non-clonal biomass
 ggplot(mixedDat, aes(ClonBMS, NCBMS)) +
-  geom_point(aes(col = Year)) +
+  geom_point(aes(shape = Year)) +
+  geom_point(aes(col = FertilizerTreatment)) + 
   geom_smooth(method = "loess") +
   labs(x = "Clonal Biomass", y = "Non-Clonal Biomass")
 
@@ -264,15 +265,16 @@ ggplot(mixedDat, aes(sample = NCBMS)) +
   geom_qq() + 
   geom_qq_line()
 
+hist(mixedDat$NCBMS)
 
 ```
 
 *Both a shapiro wilks test and a visual inspection suggest our response variable is distributed normally*
 
-a) Modeling
+a) Modeling: Addressing the Hypothesis
 
 ```{r}
-#Basic linear model
+#Basic linear model with NO inclusion of Fertilizer Treatment
 basicLM <- lm(NCBMS ~ ClonBMS, data = mixedDat)
 summary(basicLM)
 ```
@@ -288,6 +290,7 @@ plot(basicLM)
 basicLM_log <- lm(log(NCBMS) ~ ClonBMS, data = mixedDat)
 shapiro.test(basicLM_log$residuals)
 plot(basicLM_log)
+hist(basicLM_log$residuals)
 
 ```
 *This looks much better; will proceed with further additional complications to this model below*
@@ -295,7 +298,51 @@ plot(basicLM_log)
 
 *Basic Model results: A basic linear model suggests that clonal plant biomass has an effect on the non clonal plant biomass within the mixed community*
 
-b) more variables!
+b) Modeling: inclusion of Fertilizer Treatment in basic model; ANCOVA
+```{r}
+#Including Fertilizer Treatment in the basic model
+fertLM <- lm(log(NCBMS) ~ ClonBMS + FertilizerTreatment, data = mixedDat)
+plot(fertLM,2)#qq looks good
+hist(fertLM$residuals)#residuals appear normally distributed
+shapiro.test(fertLM$residuals)#almost a perfect normal distribution
+summary(fertLM)
+```
+*According to the output of this model, clonal plant biomass had a significant negative effect on non-clonal plant biomass(F(4,59) = 6.24, R2 = 0.30, se = 0.50, p < 0.001. However, there was no discernible significant difference among non-clonal plant biomass by fertilizer treatments relative to the control when controlling for the effects of clonal plant biomass (F(3,60) = 1.67, se = 45.27, p > 0.05). The takeaway from this is that, in essence, regardless of the spatial heterogeneity of resources, the foraging and resource acquisition potential has a significant negative effect on the biomass non-clonal plant species. Based on the findings of CITE, we can infer that this decrease in biomass is associated with an increase in stress, and thus non-clonal plant species that have a higher potential to increase their biomass in such situations may have a selective advantage.*
+
+c) more variables!
+
+
+```{r}
+#Running the same ANCOVA, but accounting for the effects of time (2006-2008)
+yearLM <- lm(log(NCBMS) ~ ClonBMS + FertilizerTreatment + Year + FertilizerTreatment:Year, data = mixedDat)
+plot(yearLM,2)#qq looks good
+hist(yearLM$residuals)#residuals appear normally distributed, with some abnormalities within the first quantile
+shapiro.test(yearLM$residuals)#testing suggests normalcy
+summary_YearLM <- summary(yearLM)
+summary(yearLM)
+test <- as.data.frame(summary_YearLM$coefficients)
+test$Names <- names(yearLM$coefficients)
+view(test)
+
+ggplot(test, aes(x=Names, y=Estimate, label=Names)) + 
+  geom_point(stat='identity', fill="black", size=6)  +
+  geom_segment(aes(y = 0, 
+                   x = Names, 
+                   yend = Estimate, 
+                   xend = Names), 
+               color = "black") +
+  labs(title="Graphical Representation of Estimated Model Effects", 
+       subtitle="All effect values relative to Control Fertilizer Treatment in the Year 2006",
+       x = "Coefficient Name",
+       y = "Effect Size Estimate") + 
+  coord_flip() +
+  theme_minimal()
+
+
+view(test)
+```
+*Things get very interesting here. First, the same negative overall effect of clonal plant biomass on non-clonal plant biomass is seen (F(8,55) = 7.203, adj.R2 = 0.44, se = 0.43, p <0.001). However, the effects of fertilizer treatment become apparent in this model. Relative to the control and not accounting for the effects of year, the large-, uniform-, and small-patch fertilizer treatments do not differ significantly (t = 0.96, se = 0.21, p > 0.05; t = 0.53, se = 0.22, p > 0.05, and t = 1.06, se = 0.22, p > 0.05, respectively). All other variables held constant, we can see that going from the year 2006 to 2008 is associated with a large change in the effect of clonal plant biomass on non-clonal plant biomass (effect size = 0.755, t = 3.01, se = 0.25, p < 0.01). However, when we look further into the model output, we see that the effect of clonal plant biomass on non-clonal plant biomass is dependent on both the level of fertilizer treatment and the level of year. Namely, we see a large opposite effect in how clonal plant mass effects non-clonal plant mass in the small-patch fertilizer treatment, relative to the control, during the year of 2008 (t = 2.48, se = 0.33, p < 0.05); that is, the effect is diminished. This suggests that, with time, the strong observed negative effect tapers off slightly. There was similar change in slope in all other fertilizer treatments in 2008, but these changes were not significant. It should be noted that, broadly speaking, the effects of clonal plant biomass on non-clonal plant biomass diminishes, and most of this diminishing effect is seen as both a function of time and the small-patch fertilizer treatment. Given that much of this change in effect is found in the small-patch fertilizer treatment, this would suggest that non-clonal plants in the small-patch fertilizer treatment may have experienced less stress than those in other nutrient treatments. This result is of particular interest, as it may indicate the importance of genetic diversity as it pertains to competition over time. We predicted that, due to the fact that clonal plant species are more effective at foraging across nutrient boundaries when said boundaries are in closer proximity, non-clonal plant species biomass in such circumstances would decrease at a higher rate relative to those in more spread-out nutrient treatments. To see results that indicate that this may not be the case suggests there may be a threshold at which rapid foraging, resource acquisition, and vegetative growth potential is beneficial, especially when such a plant is foraging into microhabitats that contain different plants, and subsequently more phenotypic diversity.
+
 
 ```{r}
 #Checking to see if experimental design factor ("Block") has effect on our predictor variable
@@ -309,3 +356,20 @@ lm_allVars <- lm(log(NCBMS) ~ ClonBMS + Block + FertilizerTreatment + Year + Clo
 summary(lm_allVars)
 ```
 *There's a lot to digest here. First thing that stands out the most is that, when holding all other variables constant, the biomass of non-clonal plants increased significantly from 2006 to 2008. This suggests that, as time progressed, our hypothesized effect became less apparent. This is important given that clonal plant biomass significantly decreased in 2008, and this decrease is dependent on both the change in year and the increase in non-clonal plant biomass with time. Second, there did not appear to be any other significant effect or interaction effect between predictors on non-clonal plant biomass, aside from that of clonal plant biomass. This suggests that, of all the predictor variables and their potential interaction effects, clonal plant biomass is the strongest predictor and, aside from year, accounts for a large amount of the variation seen in non-clonal plant biomass. In summary, we can see a significant decrease in non-clonal plant biomass as clonal plant biomass increases, suggesting that the strong foraging and resource acquisition potential of clonal plants in habitats of spatial/resource heterogeneity is a significant form of stress on non-clonal plant species. Though this is not supported by this analysis in any way, shape, or form, given that we saw a higher average non-clonal plant biomass in 2008 relative to 2006, this suggests that these surviving plants experienced less stress and had a relative higher fitness, suggesting that there may be selection at work in such circumstances. Again, no proof, just a thought.*
+
+```{r}
+#subsetting data by year
+earlyDat <- subset(mixedDat, Year == "2006")
+lateDat <- subset(mixedDat, Year == "2008")
+
+#early basic LM
+summary(lm(NCBMS ~ ClonBMS, data = earlyDat))
+
+#late basic LM
+summary(lm(NCBMS ~ ClonBMS, data = lateDat))
+
+#mixed model
+
+summary(lm(NCBMS ~ Year + ClonBMS + ClonBMS:Year, data = mixedDat))
+
+```
