@@ -314,7 +314,8 @@ c) more variables!
 
 ```{r}
 #Running the same ANCOVA, but accounting for the effects of time (2006-2008)
-yearLM <- lm(log(NCBMS) ~ ClonBMS*Year + ClonBMS*FertilizerTreatment, data = mixedDat)
+yearDat <- subset(mixedDat, Year == "2008")
+yearLM <- lm(log(NCBMS) ~ ClonBMS*FertilizerTreatment*Year, data = mixedDat)
 plot(yearLM,2)#qq looks good
 hist(yearLM$residuals)#residuals appear normally distributed, with some abnormalities within the first quantile
 shapiro.test(yearLM$residuals)#testing suggests normalcy
@@ -343,6 +344,69 @@ view(test)
 anova(yearLM)
 summary(yearLM)
 ```
+
+```{r}
+#Three way interaction
+threeLM <- lm(log(NCBMS) ~ ClonBMS*FertilizerTreatment*Year, data = mixedDat)
+anova(threeLM)
+summary(threeLM)#No significant threeway interaction
+
+#Multiple 2 way interactions
+twoLM <- lm(log(NCBMS) ~ ClonBMS*FertilizerTreatment + ClonBMS*Year + Year*FertilizerTreatment, data = mixedDat)
+anova(twoLM)
+summary(twoLM)
+```
+*When looking at this multiple two way interaction model, we can see, once again, that the effect of clonal plant biomass on non-clonal plant biomass depends on the level of fertilizer treatment (F(51,3) = 4.25, p < 0.01). The status of a potential interaction between year and clonal plant biomass remians insignficant, as well (F(51,1) = 0.58, p > 0.05). The same effect of year is seen on non-clonal plant biomass (F(51,1) = 18.75, p > 0.001)*
+
+```{r}
+oneLM <- lm(log(NCBMS) ~ ClonBMS*FertilizerTreatment + Year, data = mixedDat)
+anova(oneLM)
+summary(oneLM)
+```
+*In our final, most parsimonious model, we can see that the effect of clonal plant biomass remains dependent on the level of fertilizer treatment (F(55,3) = 3.94, p < 0.05). Specifically, when using non-clonal plant biomass as a proxy for perceived stress, we can see that competition is weakest in the small-patch fertilizer treatments(t(55) = 2.46, se = 0.002, p < 0.05). This result suggests that small-scale fertilizer heterogeneity is most beneficial to non-clonal plants when competing for resources with rhizomatous clonal plant species. The effect of year, when all other variables and interaction terms held constant, is still significant, indicating that with time, non-clonal plant biomass increases (t(55) = 4.56, se = 0.23, p < 0.001).*
+
+
+Plotting the models
+```{r}
+
+
+#subsetting data for plotting
+coDat <- subset(mixedDat, FertilizerTreatment == "CO")
+unDat <- subset(mixedDat, FertilizerTreatment == "UN")
+spDat <- subset(mixedDat, FertilizerTreatment == "SP")
+lpDat <- subset(mixedDat, FertilizerTreatment == "LP")
+#Interaction plot
+ggplot(mixedDat) +
+  aes(x = ClonBMS, y = NCBMS, color = FertilizerTreatment) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(method = "lm", data = coDat) +
+  geom_smooth(method = "lm", data = unDat) +
+  geom_smooth(method = "lm", data = spDat) +
+  geom_smooth(method = "lm", data = lpDat) + 
+  labs(y = "Non-Clonal Plant Biomass (g/m^2)", x = "Clonal Plant Biomass (g/m^2)", title = "Clonal Plant Biomass and it's Effect on Non-Clonal Plant Biomass", subtitle = "Effect Depends on Level of Fertilizer Treatment") +
+  theme_minimal() 
+```
+```{r}
+#the effects of time
+ggplot(mixedDat, aes(Year, NCBMS)) +
+  geom_jitter(aes(col = FertilizerTreatment, size = ClonBMS), width = 0.05) +
+  geom_line(aes(group = FertilizerTreatment, col = FertilizerTreatment)) +
+  labs(y = "Non-Clonal Plant Biomass (g/m^2)", title = "Non-Clonal Plant Biomass by Year", subtitle = "data collected from 2006-2008") + 
+  theme_minimal() 
+```
+
+
+
+*According to an to this model, it would seem that the effect of clonal-plant biomass is strong; however, the effect of clonal biomass on non-clonal biomass is dependant on the present fertilizer treatment (F(3,48) = 4.13, p < 0.05). As well, it would seem that year has a strong effect on non-clonal plant biomass, however there is no intereaction effect between year and Clonal plant biomass (F(1,48) = 18.26, p<0.001). As well, ther is no significant interaction between year, clonal plant biomass, and fertilizer treatment on non-clonal plant biomass (F(3,48) = 0.55, p > .05). The most parsimonious interpretation of this model and its estimates of a biological effect is as follows: while clonal plant biomass does have a significant effect on non-clonal plant biomass, this effect depends on the level of fertilizer treatment; i.e., competition between clonal and non-clonal plants varies among fertilizer treatments. NEED TO ASK ANDREW ABOUT HOW TO TEST FOR AND INTERPRET THE EFFECTS OF YEAR AND FERTILIZER TREATMENT, AS THE ANOVA GAVE US ONLY A GENERAL EFFECT*
+
+```{r}
+#interaction plot
+interplot(m=yearLM, var1="FertilizerTreatment", var2="ClonBMS")
+
+```
+
+
+
 *According to this model, the effect of clonal plant biomass on non-clonal plant biomass depends on the level of fertilizer treatment(F(3,54) = 3.5, se = 0.41, p < 0.05). Specifically, in the small-patch fertilizer treatment, the strong negative effect of clonal-plant biomass on was diminished, suggesting that competition in such conditions is not as great (effect size = 4.0e-3, t(54) = 2.1, se = 1.9e-3, p < 0.05). This is of particular interest, as the original study suggested that foraging and reproductive behavior of clonal-plant species had the potential to make them excellent competitors in small-patch resource heterogenous environments; the results suggest that, while they may be excellent foragers, the competition factor at play here may not be as important as originally predicted. As well, we can see a significant increase in non-clonal plant biomass by year; non-clonal plant biomass went up by an estimated 0.9 g/m2 from 2006 to 2008, with all other variables held constant(t(54) = 3.14, se = 0.29, p < 0.01).*
 
 d) Plotting the relationship
@@ -350,7 +414,7 @@ d) Plotting the relationship
 ```{r}
 #hypothesis plot
 ggplot(mixedDat, aes(ClonBMS, NCBMS)) +
-  geom_point(aes(shape = Year)) +
+  geom_point(aes(shape = Year,)) +
   geom_point(aes(col = FertilizerTreatment)) + 
   geom_smooth(method = "loess") +
   labs(x = "Clonal Biomass (g/m^2)", y = "Non-Clonal Biomass (g/m^2)") +
@@ -416,4 +480,18 @@ summary(lm(NCBMS ~ ClonBMS, data = lateDat))
 
 summary(lm(NCBMS ~ Year + ClonBMS + ClonBMS:Year, data = mixedDat))
 
+```
+
+```{r}
+lm3int <- lm(log(NCBMS) ~ ClonBMS*FertilizerTreatment*TotalBMS, data = yearDat)
+anova(lm3int)
+summary(lm3int)
+```
+*No significant interactions, however each predictor on it's own accounts for substantial behavior in response variable behavior*
+```{r}
+lm3x2int <- lm(log(NCBMS)~ ClonBMS*FertilizerTreatment + ClonBMS*TotalSppNum + FertilizerTreatment*TotalSppNum, data = yearDat)
+anova(lm3x2int)
+```
+*The effect of clonal plant biomass on non-clonal plant biomass depends on both the level of fertilizer treatment and 
+```{r}
 ```
