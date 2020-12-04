@@ -1,0 +1,125 @@
+---
+title: "FInalProj3"
+output: html_document
+---
+
+1) Loading Required Packages:
+
+```{r}
+library(tidyverse)
+library(readxl)
+library(nlme)
+library(lme4)
+library(lattice)
+library(grid)
+library(gridExtra)
+library(car)
+library(betareg)
+```
+
+2) Data processing
+```{r}
+#Loading the data
+dat <- read_csv("~/Repos/School/BioStats/Lab6/Richness_and_Biomass_Lab6.csv")
+
+#Converting characters to factors
+dat$Community <- as.factor(dat$Community)
+dat$FertilizerTreatment <- as.factor(dat$FertilizerTreatment)
+dat$Block <- as.factor(dat$Block)
+dat$Year <- as.factor(dat$Year)
+
+# #filtering by the year 2008
+# yearDat <- subset(dat, Year == "2008")
+
+#Filtering by community type "mixed"
+mixedDat <- dat %>%
+  filter(Community == "mixed")
+
+#Adding in proportional vector to data frame
+mixedDat$proportionNC <- mixedDat$NCBMS/mixedDat$TotalBMS
+
+#checking strucutre of the data
+str(mixedDat)
+
+#Viewing data
+view(mixedDat)
+```
+
+3) Diagnostics
+```{r}
+#distribution of response variable
+shapiro.test(mixedDat$NCBMS)#shapiro wilks test indicates normally distributed response variable
+
+#visual inspection of response variable
+ggplot(mixedDat, aes(sample = NCBMS)) +
+  geom_qq() + 
+  geom_qq_line()
+
+hist(mixedDat$NCBMS)
+
+```
+
+4) Modeling
+```{r}
+#To get at our most interesting question, we need to look at how clonal biomass, fertilizer treatment, and year all influence non-clonal plant biomass and the proportion of non-clonal plant biomass to total sampled biomass.
+
+#Model 1: Clonal Biomass as a predictor
+m1 <- lm(NCBMS ~ ClonBMS, data = mixedDat)
+plot(m1)
+m1_log <- lm(log(NCBMS )~ ClonBMS, data = mixedDat)
+plot(m1_log)#this looks a little better
+summary(m1_log)
+```
+*with no other covariates included, across both years we can see that clonal plant biomass had a significant effect on non-clonal plant biomass*
+
+```{r}
+#Adding fertilizer treatment as covariate
+m2 <- lm(NCBMS~ ClonBMS*FertilizerTreatment, data = mixedDat)
+plot(m2)#Things look fine
+anova(m2)
+summary(m2)
+```
+*According to this model output, we can see that, when accounting for a potential interaction between clonbms and fertilizer treatment, there is still a significant negative effect of clonal plant biomass on non-clonal plant biomass; there is no significant interaction between the two variabels*
+
+```{r}
+#Adding in the effects of Year; single three-way interaction
+m3 <- lm(log(NCBMS) ~ ClonBMS*FertilizerTreatment*Year, data = mixedDat)
+plot(m3)
+anova(m3)
+summary(m3)
+```
+*This is interesting! When accounting for the effects of year as a covariate and a constant, we can see that the effects of fertilizer treatment becomes significant when holding all other variables constant. As well, the effect of year is significant. There is a significant interaction effect between ClonBMS and Fertilizer treatment, suggesting that, in this model, the effect of clonal biomass depends on the level of year*
+
+```{r}
+#Three two-way interaction effects
+m4 <- lm(log(NCBMS)~ ClonBMS*FertilizerTreatment + ClonBMS*Year + FertilizerTreatment*Year, data = mixedDat)
+plot(m4)
+anova(m4)
+```
+*A multiple two way interaction effect model essentially desribes the same relationship as the multiple three way interaction effect model. We can fully rule-out the all interaction effects with year*
+
+````{r}
+#No Year interaction effect
+m5 <- lm(log(NCBMS) ~ ClonBMS*FertilizerTreatment + Year, data = mixedDat)
+plot(m5)#Things look ok; some outliers, but nothing of great concern
+anova(m5)
+````
+*In the final, most parsimonious model, we can see that the effect of clonal plant biomass depends on the level of fertilizer treatment, and that this effect is significant. Also, when holding other variables constant, the effect of year is signficant, too*
+
+```{r}
+#detailed output of model
+summary(m5)
+```
+
+*Here we can see whats really going on. It is clear that year had a significant positive effect on non-clonal plant biomass when holding all other variables constant. This indicates that, when taking into account the effects of fertilizer treatment and clonal plant biomass, competition between these two plant types may decrease with time. Obviously, we would need more time data to really know if this is the case. Overall, the effect of clonal-biomass on non-clonal biomass is negative, however, in the small and uniform patches, this effect is diminished. Specifically, in the small-patch treatment, we can see the most significant diminishing effect relative to the control. This is of particular interest, as the original study concluded that clonal plants foraged best within the small-patch fertilizer treatment, and that total non-clonal species count within that treatment was lowest; to see a result that suggest that non-clonal plants experienced less stress in this treatment relative to others, when holding all other variables constant, is interesting. Below is a beta regression analyzing how the proportion of non-clonal plant biomass to total plant biomass differed by fertilizer treatment while accounting for our other variables of interest*
+
+```{r}
+mixedDat$proportionNC <- mixedDat$NCBMS/mixedDat$TotalBMS #creating proportion vector
+beta <- betareg(proportionNC ~ FertilizerTreatment*ClonBMS + Year, data = mixedDat)
+plot(beta)#looks good
+summary(beta)
+```
+*These results indicate a similar signficant interaction effect between fertilizer treatment and clonalplant biomass. Here, we can see that the effects of clonal plant biomass and fertilizer treatment are associated with the smallest effect
+
+
+

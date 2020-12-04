@@ -4,7 +4,7 @@ output:
   html_document: default
 ---
 ## Focus of the preceding analyses:
-While the original study looked primarily at community composition, I want to take a different approach and investigate whether or not the presence of clonal species acts as a form of stress on non-clonal species. I will use plant biomass as a predictor of perceived stress on behalf of the plant; biomass has been associated with a stress response in plants (support), and thus using this metric as a stress measurement has been supported in the past. Though I cannot take this study to the lengths I might like, I will follow it up with a discussion on how selection might act on the biomass of surviving plants within this experiment, and why this is important. 
+While the original study looked primarily at community composition, I want to take a different approach and investigate whether or not the presence of clonal species acts as a form of stress on non-clonal species. I will use plant biomass as a predictor of perceived stress on behalf of the non-clonal plant; biomass has been associated with a stress response in plants (support), and thus using this metric as a stress measurement has been supported in the past. Though I cannot take this study to the lengths I might like, I will follow it up with a discussion on how selection might act on the biomass of surviving plants within this experiment, and why this is important. 
 
 Below are the hypotheses I will be testing to address the following questions: 1) Does non-clonal plant biomass differ within each fertilizer plot by community? 2) Does clonal biomass have an effect on non-clonal biomass?
 
@@ -80,7 +80,7 @@ anova(m1)
 summary(m1)
 plot(m1)
 ```
-*First, and most importantly, it would appear the the experimental design had no significant effect on the outcome of this study. Second, it would appear that Clonal Plant biomass has a significant effect on non-clonal plant biomass (F(17,1) = 18.30, R.sq = 0.75, p < 0.001) As Well, Fertilizer treatment had a significant effect on non-clonal plant biomass when clonal plant biomass was held constant (F(17,3) = 5.43, p < 0.01)*
+*First, and most importantly, it would appear the the experimental design had no significant effect on the outcome of this study when accounting for other variables of interest. Second, it would appear that Clonal Plant biomass has a significant effect on non-clonal plant biomass (F(17,1) = 18.30, R.sq = 0.75, p < 0.001) As Well, Fertilizer treatment had a significant effect on non-clonal plant biomass when clonal plant biomass was held constant (F(17,3) = 5.43, p < 0.01)*
 
 ```{r}
 m2 <- lm(NCBMS ~ ClonBMS*FertilizerTreatment, data = mixedDat)
@@ -96,7 +96,7 @@ plot(m3)#looks good
 anova(m3)
 summary(m3)
 ```
-*With our final, most parsimonious model, we can see that clonal plant biomass has a significant negative effect on non-clonal plant biomass when holding the effect of fertilizer treatment constant (F(27,3)) = 14.61, R.sq = 0.51, p < 0.001). As well, when holding the effect of clonal plant biomass constant, non-clonal plant mass differs significantly by fertilizer treatment (F(27,3) = 4.33, p < 0.05). Relative to the control fertilizer treatment, we see our greatest difference in non-clonal plant biomass (t(27) = 3.23, se = 27.90, p < 0.01), while the large- and uniform-patch treatments did not differe significantly from the control.*
+*With our final, most parsimonious model, we can see that clonal plant biomass has a significant negative effect on non-clonal plant biomass when holding the effect of fertilizer treatment constant (F(27,3)) = 14.61, R.sq = 0.51, p < 0.001). As well, when holding the effect of clonal plant biomass constant, non-clonal plant mass differs significantly among fertilizer treatment (F(27,3) = 4.33, p < 0.05). Relative to the control fertilizer treatment, we see our greatest difference in non-clonal plant biomass (t(27) = 3.23, se = 27.90, p < 0.01), while the large- and uniform-patch treatments did not differe significantly from the control.*
 
 *Final Thoughts and Discussion: These findings are of particular interest, as the original study found that, within the uniform and small-patch fertilizer treatment, non-clonal species numbers were the lowest compared to the control, given that vegetative clonal species could more easily forage into new nutrient territory under such spatially heterogenous conditions. To see that, when the study was all said and done, non-clonal plant biomass grew the most (while controlling for the negative effect of clonal plant biomass) in these conditions indicates that some non-clonal plant species were better suited for these, apparently, highly competitive environments. So while biomass may be used as an justifiable indication of stress, when paired with a significant decline in total non-clonal species numbers, we may actually be seeing the beginnings of selection taking place in these conditions, where surviving non-clonal plants are consuming the nutrients available to them with greater success. Below is a beta regression testing this hypothesis*
 
