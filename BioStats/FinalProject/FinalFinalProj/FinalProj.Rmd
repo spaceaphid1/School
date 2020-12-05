@@ -1,9 +1,16 @@
 ---
 output:
-  word_document: default
-  html_document: default
   pdf_document: default
+  html_document: default
+  word_document: default
 ---
+
+Title: Analysis of Dispersal Plasticity Under Three Environmental Stress Treatments
+Author: Jackson Anderson
+Date: Dec. 3rd, 2020
+Emery Lab, University of Colorado, Boulder
+
+
 1) Background:
 Over the course of the 2019 Fall semester, the students of Nancy Emery's Evolutionary Ecology class (EBIO 4450) conducted and experiment where they subjected a plethora of l. fremontii plants to varying forms for environmental stress. This study was conducted at the CU Greenhouse on 30th Street. Three different experiments were run for this class, all of them looking at how the manipulation of environmental parameters affected plant biomass, the ratio of dispersive to non-dispersive seeds produced by the maternal plant, and the height of the inflorescence, measured from the base of the plant. One experiment, called the "shade" experiment, subjected groups of plants to different levels of light. Another experiment, the "density" experiment, planted 1, 2, or three plants per cone as a measure of competition. The final experiment, the "resource" experiment, subjected plants to varying degrees of available nutrients, another measure of environmental stress. Data was collected near the end of the semester, and each experimental team analyzed their data, with help from Dr. Emery and those that worked in her lab. After the semester ended, as a member of Dr. Emery's lab, was tasked with performing a meta analysis of all the data collected from each experiment, and performing more rigorous testing than we had time for during the class itself. The following is my work!
 
@@ -33,15 +40,13 @@ c) Plant biomass will decrease with less access to light; dispersal propensity w
 #+ message = FALSE, warning = FALSE
 library(tidyverse)
 library(nlme)
-library(lattice) # contains function 'qqmath' for making qqplot for lmer model
+library(lattice) 
 library(lmtest)
-# library(glmmTMB)
-# library(sjPlot)
-# library(sjmisc)
 library(knitr)
 library("grid")
 library("gridExtra")
 library(wesanderson)
+citation(package = "wesanderson")
 ```
 
 4b) Data processing
@@ -1033,6 +1038,10 @@ Final Plots
 #' Biomass Plot
 
 biomassGrid <- grid.arrange(p_shade_mass_output, p_density_mass_output, p_res_mass_output, nrow = 1, top = "Biomass Response to Treatment Effect by Experiment")
+
+```
+```{r}
+
 ```
 
 ```{r}
