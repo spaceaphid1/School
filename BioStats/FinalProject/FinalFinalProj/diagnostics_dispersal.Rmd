@@ -1,0 +1,169 @@
+---
+title: 'Dispersal Plasticity: Diagnostics'
+author: "Jackson Anderson"
+output: pdf_document
+---
+
+```{r}
+####  Packages ####
+#+ message = FALSE, warning = FALSE
+library(tidyverse)
+library(nlme)
+library(lattice) 
+library(lmtest)
+library(knitr)
+library("grid")
+library("gridExtra")
+library(wesanderson)
+```
+
+```{r}
+dat <- read_csv("~/Repos/EmeryLab/DispersalMasterData.csv")
+
+#'Writing conditional to check for NA's in either disk seed count column and filtering accordingly
+d2NA <- which(is.na(dat$diskSeedCount2) & !is.na(dat$diskSeedCount1))
+d1NA <- which(!is.na(dat$diskSeedCount2) & is.na(dat$diskSeedCount1))
+view(dat[d2NA,]) #no cases where d1 is NA and d2 is not, so subset the master data where disk seed count 2 is an NA and disk seed count 1 is not
+
+
+
+#'#### Data Cleaning
+#' 
+#'Getting Mean disk seed count
+dat$meanDiskCount <-((dat$diskSeedCount1) + (dat$diskSeedCount2))/2
+
+#replacing observations where disk count 2 was an NA with the value of disk count 1 for meanDiskCount
+dat[d2NA,"meanDiskCount"] <- dat$diskSeedCount1[d2NA]
+#'Ratio of ray seeds to disk seeds
+dat$phyllToTotal <- round(dat$phyllaryCount / (dat$phyllaryCount + dat$meanDiskCount), 3)
+
+```
+
+```{r}
+#### Data Cleaning/Diagnostics: Shade Experiment ####
+#'
+
+#' #### Data
+shadeDat <- dat %>% 
+  filter( experiment == "shade")
+
+#' Conditional filtering
+shadeDat <- shadeDat %>% 
+  filter(!is.na(phyllToTotal)) %>%
+  mutate_at(vars(treatmentCat), factor) %>%
+  filter(!is.na(treatmentCat))
+
+#Response variable diagnostics: plant mass
+hist(shadeDat$focalPlantMass_g) #highly skewed to the left
+shapiro.test(shadeDat$focalPlantMass_g)# significantly different from normal distribution
+#log transformation
+hist(log(shadeDat$focalPlantMass_g))#looks marginally better
+shapiro.test(log(shadeDat$focalPlantMass_g))# similarity is marginal; dont feel entirely comfortable using data this skewed for models that do not account for heteroskedasticity
+
+#Response variable diagnostics: flower height
+hist(shadeDat$focalFlowerHeight_cm) #highly skewed to the left
+shapiro.test(shadeDat$focalFlowerHeight_cm)# significantly different from normal dist
+#log transformation
+hist(log(shadeDat$focalFlowerHeight_cm))#looks a little better
+shapiro.test(log(shadeDat$focalFlowerHeight_cm))#not significantly different from normal dist
+
+#Response variable diagnostics: seed proportion
+hist(shadeDat$phyllToTotal) #highly skewed to the left
+shapiro.test(shadeDat$phyllToTotal)# significantly different from normal dist
+#log transformation
+hist(log(shadeDat$phyllToTotal))#looks a little better, but not great by any means
+shapiro.test(log(shadeDat$phyllToTotal))#still significantly different from norm. dist
+```
+*Overall, the only response variable that withstood the requirements of normalcy was that of focal flower height, though it barely squeeked by*
+
+```{r}
+#### Data Cleaning/Diagnostics: Density Experiment ####
+#' 
+#' #### Data 
+densityDat <- dat %>% 
+  filter( experiment == "density")
+
+#' Conditional Filtering
+
+densityDat <- densityDat %>% 
+  filter( !is.na(phyllToTotal)) %>%
+  mutate_at(vars(treatmentCat), factor) %>%
+  filter(!is.na(treatmentCat)) %>%
+  filter(survivorship == 1)
+
+#Response variable diagnostics: plant mass
+hist(densityDat$focalPlantMass_g) #highly skewed to the left
+shapiro.test(densityDat$focalPlantMass_g)# significantly different from normal distribution
+#log transformation
+hist(log(densityDat$focalPlantMass_g))#looks much better
+shapiro.test(log(densityDat$focalPlantMass_g))# fixed the issue
+
+#Response variable diagnostics: flower height
+hist(densityDat$focalFlowerHeight_cm) #highly skewed to the left
+shapiro.test(densityDat$focalFlowerHeight_cm)# significantly different from normal dist
+#log transformation
+hist(log(densityDat$focalFlowerHeight_cm))#looks a little better
+shapiro.test(log(densityDat$focalFlowerHeight_cm))#not significantly different from normal dist; fixed the issue
+
+#Response variable diagnostics: seed proportion
+hist(densityDat$phyllToTotal) #highly skewed to the left
+shapiro.test(densityDat$phyllToTotal)# significantly different from normal dist
+#log transformation
+hist(log(densityDat$phyllToTotal))#does not look much better
+shapiro.test(log(densityDat$phyllToTotal))#still significantly different from norm. dist
+```
+*For the density experiment, both the response variable distributions of plant mass/focal flower height became normal when log transformed. For the seed proportion, however, log transformation did not solve the issue*
+
+
+```{r}
+#### Data Cleaning/Diagnostics: Resource Experiment ####
+
+#' #### Data
+#' 
+#' Subsetting the data
+resourceDat <- dat %>% 
+  filter(experiment == "resources")
+
+#' Conditional Filtering
+resourceDat <- resourceDat %>% 
+  filter(!is.na(phyllToTotal)) %>%
+  filter(!is.na(treatmentCat)) %>%
+  filter(survivorship == 1) %>%
+  mutate_at(vars(treatmentCat), factor)
+
+#' Replicates per treatment
+resource_reps <- summarize(group_by(resourceDat, treatmentCat), n())
+resource_reps
+
+#' The "high" treatment was removed due to low replication (3 data points)
+resourceDat <- resourceDat %>% 
+  filter( treatmentCat != "High" ) %>%
+  droplevels()
+
+#Response variable diagnostics: plant mass
+hist(resourceDat$focalPlantMass_g) #highly skewed to the left
+shapiro.test(resourceDat$focalPlantMass_g)# significantly different from normal distribution
+#log transformation
+hist(log(resourceDat$focalPlantMass_g))#looks a little better; skewed to right now
+shapiro.test(log(resourceDat$focalPlantMass_g))# did not fix the issue; significantly different from normal distribution
+
+#Response variable diagnostics: flower height
+hist(resourceDat$focalFlowerHeight_cm) #Slightly skewed to left, but overall seems OK
+shapiro.test(resourceDat$focalFlowerHeight_cm)# marginally similar to normal distribution
+#log transformation
+hist(log(resourceDat$focalFlowerHeight_cm))#looks a little better
+shapiro.test(log(resourceDat$focalFlowerHeight_cm))#not significantly different from normal dist; fixed the issue
+
+#Response variable diagnostics: seed proportion
+hist(resourceDat$phyllToTotal) #highly skewed to the left
+shapiro.test(resourceDat$phyllToTotal)# significantly different from normal dist
+#log transformation
+hist(log(resourceDat$phyllToTotal))#does not look much better
+shapiro.test(log(resourceDat$phyllToTotal))#still significantly different from norm. dist
+
+```
+*For the resource experiment, only the focal flower height was fixed when log transformed; the other two response variables remain unusable for standard models*
+
+*Conclusion: the purpose of this diagnostics script is to demonstrate the fact that real-world data can be very problematic. Even though some of the response variable distributions were fixed by log transformation, many of them were not. Subsequent analyses on these log-transformed variables did not change the fact that there was high  heteroskedasticity within these models. As a result, the use of log transformation ultimately failed. To address this issue, models that incorporated unequal residual variance structures were applied with much more success. Even still, those models provided problems of their own, such as the loss of degrees of freedom.*
+
+*Some thoughts on the biology behind this: in every case, there was a skew to the left. There were platykurtic and leptokurtic distributions; normal too. The gamut of distributions was present! However, the consitency of leftward skew suggested that one of the following things may be true: 1) there was more variation in these variables than was sampled; i.e., even though outliers existed, realistically these data points may not have actually been outliers relative to the true mean of the population. It's a stretch, but it's possible, given that our replication numbers were somewhat low within each treatemt, and very low in a few. Point 3 below somewhat addresses this. 2) Our treatments themselves resulted in such low survivorship (certainly the case in the resource experiment) that our results were not a realistic guage of stress or trait response; maybe our treatments were too stressful. There is still survivorship data that needs to be collected and entered before a survivorship analysis can be completed, but the results of such an analysis will certainly be interesting. 3) These models do not exclude outliers, as all of the data has yet to be collected. As a result, these outliers may be significantly affecting our response variable distribution.*
