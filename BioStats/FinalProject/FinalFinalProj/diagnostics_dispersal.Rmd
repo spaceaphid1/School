@@ -38,7 +38,7 @@ dat[d2NA,"meanDiskCount"] <- dat$diskSeedCount1[d2NA]
 dat$phyllToTotal <- round(dat$phyllaryCount / (dat$phyllaryCount + dat$meanDiskCount), 3)
 
 ```
-
+*This is a test*
 ```{r}
 #### Data Cleaning/Diagnostics: Shade Experiment ####
 #'
