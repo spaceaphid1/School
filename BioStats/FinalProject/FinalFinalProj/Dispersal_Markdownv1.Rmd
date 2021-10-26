@@ -1,0 +1,1060 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+  word_document: default
+---
+
+Title: Analysis of Dispersal Plasticity Under Three Environmental Stress Treatments
+Author: Jackson Anderson
+Date: Dec. 3rd, 2020
+Emery Lab, University of Colorado, Boulder
+
+
+1) Background:
+Over the course of the 2019 Fall semester, the students of Nancy Emery's Evolutionary Ecology class (EBIO 4450) conducted and experiment where they subjected a plethora of l. fremontii plants to varying forms for environmental stress. This study was conducted at the CU Greenhouse on 30th Street. Three different experiments were run for this class, all of them looking at how the manipulation of environmental parameters affected plant biomass, the ratio of dispersive to non-dispersive seeds produced by the maternal plant, and the height of the inflorescence, measured from the base of the plant. One experiment, called the "shade" experiment, subjected groups of plants to different levels of light. Another experiment, the "density" experiment, planted 1 or two plants per cone as a measure of competition. The final experiment, the "resource" experiment, subjected plants to varying degrees of available nutrients, another measure of environmental stress. Data was collected near the end of the semester, and each experimental team analyzed their data, with help from Dr. Emery and those that worked in her lab. After the semester ended, as a member of Dr. Emery's lab, was given the opportunity to perform a meta analysis on all the data collected from each experiment, as well as execute more rigorous testing than we had time for during the class itself. Suffice it to say that the results from this analysis differed substantially from those of the actual class. 
+
+Much of the data parsing was done early in the Fall semester; preliminary visualization and modeling was done during mid Fall semester, and these results were interpreted with more scrutiny over the past few days. Im bummed that I was not able to use my original data set for this assignment, and I learned the hard way to make sure the data fits the assumptions of the models needed to perform the analysis. As well, it should be noted that this data set is somewhat incomplete, as there is survivorship data on some plants from the density experiment have yet to be tallied. When the pandemic hit, it became very difficult to coordinate between my former classmates that ran this experiment, as some left the country to do fieldwork in Norway. Thus, survivorship status was taken into account, when possible. All-in-all, this analysis is still a work-in-progress, and may end up becoming part of my senior thesis, should time permit. Enjoy!!
+
+Experimental Assumptions: Really, the only assumptions made for these experiments is that plant biomass is a measure of stress. The use of inflorescence height was statistically tested for as a dispersal trait by the class, and the seed type proportion as a measure of dispersal propensity is widely supported by cited literature.
+
+2) Hypotheses
+
+a: Nutrient concentration will have an effect on the plant biomass, the proportion or dispersive to non-dispersive seeds, and inflorescence height.
+
+b: The number of plants in a cone will have an effect on plant biomass, the proportion or dispersive to non-dispersive seeds, and inflorescence height.
+
+c) Access to light will have an effect on the plant biomass, the proportion or dispersive to non-dispersive seeds, and inflorescence height.
+
+3) Predictions
+
+a) Plant biomass will decrease with increasing nutrient concentration; the ratio of dispersive to non-dispersive seeds will increase with nutrient concentration; focal flower height will increase with nutrient concentration
+
+b) With increasing competition, plant mass will decrease; dispersal propensity (seed ratio) will increase with competition; focal flower height will increase with competition
+
+c) Plant biomass will decrease with less access to light; dispersal propensity will be inversely associated with light level; focal flower height will be inversely associated with light level. 
+
+
+4a) Package loading
+
+```{r}
+####  Packages ####
+#+ message = FALSE, warning = FALSE
+library(tidyverse)
+library(nlme)
+library(lattice) 
+library(lmtest)
+library(knitr)
+library("grid")
+library("gridExtra")
+library(wesanderson)
+```
+
+4b) Data processing
+
+```{r}
+#'Loading the Data
+dat <- read_csv("/Users/jacksonanderson/Desktop/DisperalDataOrigFiles/DispersalMasterData_with_weight.csv")
+
+#'Writing conditional to check for NA's in either disk seed count column and filtering accordingly
+d2NA <- which(is.na(dat$diskSeedCount2) & !is.na(dat$diskSeedCount1))
+d1NA <- which(!is.na(dat$diskSeedCount2) & is.na(dat$diskSeedCount1))
+view(dat[d2NA,]) #no cases where d1 is NA and d2 is not, so subset the master data where disk seed count 2 is an NA and disk seed count 1 is not
+
+
+
+#'#### Data Cleaning
+#' 
+#'Getting Mean disk seed count
+dat$meanDiskCount <-((dat$diskSeedCount1) + (dat$diskSeedCount2))/2
+
+#replacing observations where disk count 2 was an NA with the value of disk count 1 for meanDiskCount
+dat[d2NA,"meanDiskCount"] <- dat$diskSeedCount1[d2NA]
+#'Ratio of ray seeds to disk seeds
+dat$phyllToTotal <- round(dat$phyllaryCount / (dat$phyllaryCount + dat$meanDiskCount), 3)
+
+#Setting plotting label order for all experiments
+labelOrders <- c("Control", "Structure", "Low", "Medium", "High")
+
+```
+
+4c) Subsetting by experiment
+
+```{r}
+#### Data Cleaning: Shade Experiment ####
+#'
+
+#' #### Data
+shadeDat <- dat %>% 
+  filter( experiment == "shade")
+
+#' Conditional filtering
+shadeDat <- shadeDat %>% 
+  filter(!is.na(phyllToTotal)) %>%
+  mutate_at(vars(treatmentCat), factor) %>%
+  filter(!is.na(treatmentCat))
+  
+
+#' Replicates per treatment
+shade_reps <- summarize(group_by(shadeDat, treatmentCat), n())
+shade_reps
+
+#' Boxplot of the phyllary proportion by treatment
+ggplot(shadeDat, aes(treatmentCat, phyllToTotal)) +
+  geom_boxplot()
+
+#' Boxplot of the floral height by treatment
+ggplot(shadeDat, aes(treatmentCat, focalFlowerHeight_cm)) +
+  geom_boxplot()
+
+#' Boxplot of the plant mass by treatment
+ggplot(shadeDat, aes(treatmentCat, focalPlantMass_g)) +
+  geom_boxplot()
+```
+
+```{r}
+#### Data Cleaning: Density Experiment ####
+#' 
+#' #### Data 
+densityDat <- dat %>% 
+  filter( experiment == "density")
+
+#' Conditional Filtering
+
+densityDat <- densityDat %>% 
+  filter( !is.na(phyllToTotal)) %>%
+  mutate_at(vars(treatmentCat), factor) %>%
+  filter(!is.na(treatmentCat)) %>%
+  filter(survivorship == 1)
+
+#' Replicates per treatment
+density_reps <- summarize(group_by(densityDat, treatmentCat), n())
+density_reps
+
+#' Boxplot of the phyllary proportion by treatment
+ggplot(densityDat, aes(treatmentCat, phyllToTotal)) +
+  geom_boxplot()
+
+#' Boxplot of the floral height by treatment
+ggplot(densityDat, aes(treatmentCat, focalFlowerHeight_cm)) +
+  geom_boxplot()
+
+#' Boxplot of the plant mass by treatment
+ggplot(densityDat, aes(treatmentCat, focalPlantMass_g)) +
+  geom_boxplot()
+```
+
+```{r}
+#### Data Cleaning: Resource Experiment ####
+
+#' #### Data
+#' 
+#' Subsetting the data
+resourceDat <- dat %>% 
+  filter(experiment == "resources")
+
+#' Conditional Filtering
+resourceDat <- resourceDat %>% 
+  filter(!is.na(phyllToTotal)) %>%
+  filter(!is.na(treatmentCat)) %>%
+  filter(survivorship == 1) %>%
+  mutate_at(vars(treatmentCat), factor)
+
+#' Replicates per treatment
+resource_reps <- summarize(group_by(resourceDat, treatmentCat), n())
+resource_reps
+
+#' The "high" treatment was removed due to low replication (3 data points)
+resourceDat <- resourceDat %>% 
+  filter( treatmentCat != "High" ) %>%
+  droplevels()
+
+
+#' Boxplot of the phyllary proportion by treatment
+ggplot(resourceDat, aes(treatmentCat, phyllToTotal)) +
+  geom_boxplot()
+
+#' Boxplot of the floral height by treatment
+ggplot(resourceDat, aes(treatmentCat, focalFlowerHeight_cm)) +
+  geom_boxplot()
+
+#' Boxplot of the plant mass by treatment
+ggplot(resourceDat, aes(treatmentCat, focalPlantMass_g)) +
+  geom_boxplot()
+```
+
+```{r}
+#Response Variable Diagnostics:
+```
+*It should be noted that extensive diagnostics were run on the response variables for each treatment. In all cases, the distributions were very close to being not normal, even with log transformations. In most cases, log transformation did not solve the issues of underlying non-normality at all. As a result, under the instruction of my boss, I used a model that accounted for underlying heteroskedasticity in its framework, when needed, and I had much more success with these models than I did with log transformation, at least as far as residual variance structures are concerned. The data was not perfect, far from good, in fact. But I made due with what I had! I did not include these diagnostics in this markdown, for the sake of this assignment, as it added approximately 200 lines to an already monstrous script. Andrew or Chris, should you want to see these diagnostics I have a separate script ready to upload where I compared transformed to un-transformed response variable distributions/normality. Let me know if you want this, and I will get it to you ASAP.*
+
+5) Shade Experiment: Plant Mass
+
+```{r}
+#### Plant Mass: Shade to Control####
+#' 
+#' Get rid of NA's
+shadeDat_mass <- shadeDat %>% filter( !is.na(focalPlantMass_g))
+
+#' __Linear mixed model__
+lme_mass_shade <- lme(focalPlantMass_g~treatmentCat, 
+                      random = ~1|bin, 
+                      data = shadeDat_mass)
+summary(lme_mass_shade)
+```
+*According to this model, which incorporates bin as a potential random experimental design variable, there is no significant difference in plant mass among our different treatment categories*
+
+```{r}
+#' _Diagnostic plots: Shade mass_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_mass_shade, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_mass_shade)
+```
+*Though the residual variances are somewhat different per fitted value, they aren't all that concerning Even so, I fit an unequal variances model and then compared it to the equal variances model.*
+```{r}
+#' __Linear mixed model with unequal variances__
+lme_mass_shade_uv <- lme(focalPlantMass_g~treatmentCat,
+                         data = shadeDat_mass,
+                         random = ~1|bin,
+                         weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_mass_shade_uv)
+
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_mass_shade_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_mass_shade_uv)
+```
+*The uneuqual variances model to seem to homogenize residual variances, but is it worth it to use this model over the equal variances model at the cost of less degrees of freedom?*
+
+```{r}
+anova(lme_mass_shade, lme_mass_shade_uv) # No
+```
+
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_mass_shade_noint <- lme(focalPlantMass_g~ 0 +treatmentCat,
+                            data = shadeDat_mass,
+                            random = ~1|bin)
+```
+
+```{r}
+#' _Final answer_
+summary_lme_mass_shade <- summary(lme_mass_shade)
+summary_lme_mass_shade_noint <- summary(lme_mass_shade_noint)
+anova(summary_lme_mass_shade) 
+```
+*As we can see for this model, there is no significant treatment effect*
+```{r}
+summary_lme_mass_shade 
+```
+
+```{r}
+#' Plot the model outcome (work in progress)
+shade_mass_output_df <- data.frame(cat_mean_noint = summary_lme_mass_shade_noint$tTable[,"Value"],
+                                   cat_se_noint = summary_lme_mass_shade_noint$tTable[,"Std.Error"],
+                                   trt_cat = levels(shadeDat$treatmentCat))
+
+shade_mass_output_df
+
+p_shade_mass_output <- ggplot(shade_mass_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_errorbar(aes(ymin=cat_mean_noint-cat_se_noint, ymax=cat_mean_noint+cat_se_noint), color = "brown4", width = 0.5) +
+  geom_point() +
+  geom_jitter(data = shadeDat, aes(x = treatmentCat, y = focalPlantMass_g), color = "brown4", width = 0.1, alpha = 0.4) +
+  theme_light() +
+  ylab("Focal Plant Mass (g)") +
+  xlab("Shade Treatment (µmol of photons/m^2s)") +
+  ggtitle("Shade Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n122.0", "Structure\n107.0", "Low\n87.2", "Medium\n71.6", "High\n69.0")) +
+  ylim(0,.5) +
+  labs(caption = "No Significant Treatment Effect")
+p_shade_mass_output
+```
+*No need for subsequent pairwise comparisons given that the treatment effect was insignificant*
+
+#6) Density Experiment: Plant Mass
+
+```{r}
+#' Get rid of NA's
+densityDat_mass <- densityDat %>% filter( !is.na(focalPlantMass_g))
+
+#' __Linear mixed model__
+lme_mass_density <- lme(focalPlantMass_g~treatmentCat, 
+                        random = ~1|bin, 
+                        data = densityDat_mass)
+summary(lme_mass_density)
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_mass_density, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_mass_density)
+```
+*Though the residual variances are somewhat different per fitted value, but they aren't all that concerning. Even so, I fit an unequal variances model and then compared it to the equal variances model.*
+
+```{r}
+#' __Linear mixed model with unequal variances__
+lme_mass_density_uv <- lme(focalPlantMass_g~treatmentCat,
+                           data = densityDat_mass,
+                           random = ~1|bin,
+                           weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_mass_density_uv)
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_mass_density_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_mass_density_uv)
+```
+
+*The variance structure by fitted value seems to be somewhat more normal using the unequal variances model, though it looks like the gains are marginal, at best. Is it worth it to use the unequal variances model at the cost of degrees of freedom?*
+
+```{r}
+anova(lme_mass_density, lme_mass_density_uv) 
+```
+*Yes, it is!*
+
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_mass_density_noint <- lme(focalPlantMass_g~ 0 +treatmentCat,
+                              data = densityDat_mass,
+                              random = ~1|bin,
+                              weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_mass_density_noint)
+
+#' _Final answer_
+summary_lme_mass_density_uv <- summary(lme_mass_density_uv)
+summary_lme_mass_density_noint <- summary(lme_mass_density_noint)
+anova(summary_lme_mass_density_uv)
+```
+*Given that there was no significant treatment effect, pairwise comparisons are not needed*
+
+```{r}
+#Final model output
+summary_lme_mass_density_uv
+```
+
+```{r}
+#' Plot the model outcome
+density_mass_output_df <- data.frame(cat_mean_noint = summary_lme_mass_density_noint$tTable[,"Value"],
+                                     cat_se_noint = summary_lme_mass_density_noint$tTable[,"Std.Error"],
+                                     trt_cat = levels(densityDat$treatmentCat))
+
+density_mass_output_df
+
+p_density_mass_output <- ggplot(density_mass_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin=cat_mean_noint-cat_se_noint, ymax=cat_mean_noint+cat_se_noint), color = "cyan4",width = .5, show.legend = F) +
+  geom_jitter(data = densityDat, aes(x = treatmentCat, y = focalPlantMass_g), color = "cyan4", width = 0.1, alpha = 0.4) +
+  theme_light() + 
+  ylab("Focal Plant Mass (g)") +
+  xlab("Density Treatment (plants per cone)") +
+  ggtitle("Density Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n0", "Low\n1", "High\n2")) +
+  ylim(0,.6) +
+  labs(caption = "No Significant Treatment Effect")
+
+p_density_mass_output
+```
+#7) Resource Experiment: Plant Mass
+
+```{r}
+#' Get rid of NAs in the data
+resourceDat_mass <- resourceDat %>% filter( focalPlantMass_g > 0)
+
+#' __Linear mixed model__
+lme_mass_resource <- lme(focalPlantMass_g~treatmentCat, 
+                         random = ~1|bin,
+                         data = resourceDat_mass)
+summary(lme_mass_resource)
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_mass_resource, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_mass_resource)
+```
+
+*There aren't super clear differences in the variance of the residuals among by fitted value, but I decided to fit the unequal variances model anyway to see what it looked like/if it was worth using.* 
+
+```{r} 
+#' __Linear mixed model with unequal variances__
+lme_mass_resource_uv <- lme(focalPlantMass_g~treatmentCat,
+                            data = resourceDat_mass,
+                            random = ~1|bin,
+                            weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_mass_resource_uv)
+
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_mass_resource_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_mass_resource_uv)
+```
+
+*Looks like the unequal variances model fixes the issues. But is it worth the extra spending of degrees of freedom?*
+```{r}
+anova(lme_mass_resource, lme_mass_resource_uv)
+```
+*Yes*
+
+```{r}
+#' _Final answer_
+summary_lme_mass_resource_uv <- summary(lme_mass_resource_uv)
+anova(summary_lme_mass_resource_uv) 
+```
+*There was a significant treatment effect; subsequent pairwise comparisons will be necessary*
+```{r}
+summary_lme_mass_resource_uv
+```
+*Relative to the control, we can see that both the low and medium treatment categories differed significant. We can see that the low treatment category is associated with a 1.2x mass increase relative to the control (t(25) = 3.16, se = 0.12, p < 0.01). This suggests that the added nutrients within the low treatment category were in fact beneficial to the plant. The medium treatment category is associated with a 38% decrease in mass relative to the control (t(25) = -2.25, se = 0.05, p < 0.05). Plants in this category, when using biomass as a proxy of stress, did no fare as well when compared to the control. Pairwise testing below will illustrate how the plant mass in the two treatments differed when compared to one another* 
+```{r}
+#Plant Mass: Resource Pairwise Comparisons
+resDat_mass <- resourceDat_mass %>% filter( !is.na(focalPlantMass_g))
+# Medium To All:
+res_mass_medbase <- resDat_mass %>% mutate(treatmentCat = relevel(treatmentCat, "Medium"))
+
+lme_mass_res_medbase <- lme(focalPlantMass_g~treatmentCat,
+                            data = res_mass_medbase,
+                            random = ~1|bin,
+                            weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_mass_res_medbase)
+```
+*Here, we can see that the low treatment category is associated with 2.6x mass increase relative to the medium treatment category (t(25) = 4.26, se = 0.11, p < 0.001). The results suggest that plants in the low treatment category faired the best when compared to both the control and the medium treatment*
+
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_mass_resource_uv_noint <- lme(focalPlantMass_g~ 0 +treatmentCat,
+                                  data = resourceDat_mass,
+                                  random = ~1|bin,
+                                  weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_mass_resource_uv_noint)
+
+#' _Final answer_
+summary_lme_mass_resource_uv <- summary(lme_mass_resource_uv)
+summary_lme_mass_resource_uv_noint <- summary(lme_mass_resource_uv_noint)
+summary_lme_mass_resource_uv
+```
+
+```{r}
+#' Plot the model outcome
+mass_resource_output_df <- data.frame(cat_mean_noint = summary_lme_mass_resource_uv_noint$tTable[,"Value"],
+                                      cat_se_noint = summary_lme_mass_resource_uv_noint$tTable[,"Std.Error"],
+                                      trt_cat = levels(resourceDat$treatmentCat))
+levels(resourceDat$treatmentCat)
+mass_resource_output_df
+
+p_res_mass_output <- ggplot(mass_resource_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin=cat_mean_noint-cat_se_noint, ymax=cat_mean_noint+cat_se_noint),color = "goldenrod3", width = .5, show.legend = F) +
+  geom_jitter(data = resourceDat, aes(x = treatmentCat, y = focalPlantMass_g),color = "goldenrod3", width = 0.1, alpha = 0.4, show.legend = F) +
+  theme_light() + 
+  ylab("Focal Plant mass (g)") +
+  xlab("Nutrient Addition Treatment (tbsp nutrients/gal. water)") +
+  ggtitle("Eutrophication Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n0", "Low\n0.5x", "High\n1x")) +
+  ylim(-0.5, 2) +
+  annotate("text", 1, 1, label = "a") +
+  annotate("text", 2, 1.75, label = "b") +
+  annotate("text", 3, .5, label = "c")  +
+  labs(caption = "Significant Overall Treatment Effect; letters indicated within-group differences")
+  
+
+p_res_mass_output
+```
+#8) Shade Experiment: Ray Seed Proportion
+
+```{r}
+#Ray Seed Proportion: Shade to Control
+#' __Linear mixed model__
+lme_propn_shade <- lme(phyllToTotal~treatmentCat, 
+                       random = ~1|bin, 
+                       data = shadeDat)
+
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_propn_shade, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_propn_shade)
+```
+*There are again clear differences in the variance of the residuals among the treatments, so I fit an unequal variances model*
+
+```{r}
+
+#' __Linear mixed model with unequal variances__
+lme_propn_shade_uv <- lme(phyllToTotal~treatmentCat,
+                          data = shadeDat,
+                          random = ~1|bin,
+                          weights = varIdent(form = ~1|treatmentCat))
+
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_propn_shade_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+*This looks better*
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_propn_shade_uv)
+```
+*This looks better, too. Looks like the unequal variances model fixes the issues. But is it worth the extra spending of degrees of freedom?*
+```{r}
+anova(lme_propn_shade, lme_propn_shade_uv)
+```
+*yes!*
+
+```{r}
+#Checking for overall treatment effect
+anova(lme_propn_shade_uv)
+```
+*No significant treatment effect; subsequent pairwise comparisons are not necessary*
+
+```{r}
+
+#' _Final answer_
+summary_lme_propn_shade_uv <- summary(lme_propn_shade_uv)
+summary_lme_propn_shade_uv
+```
+
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_propn_shade_uv_noint <- lme(phyllToTotal~ 0 +treatmentCat,
+                                data = shadeDat,
+                                random = ~1|bin,
+                                weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_propn_shade_uv_noint)
+summary_lme_propn_shade_uv_noint <- summary(lme_propn_shade_uv_noint)
+
+
+#' Plot the model outcome
+shade_propn_output_df <- data.frame(cat_mean_noint = summary_lme_propn_shade_uv_noint$tTable[,"Value"],
+                                    cat_se_noint = summary_lme_propn_shade_uv_noint$tTable[,"Std.Error"],
+                                    trt_cat = levels(shadeDat$treatmentCat))
+
+shade_propn_output_df
+
+p_shade_propn_output <- ggplot(shade_propn_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin=cat_mean_noint-cat_se_noint, ymax=cat_mean_noint+cat_se_noint), color = "brown4", width = .5, show.legend = F) +
+  geom_jitter(data = shadeDat, aes(x = treatmentCat, y = phyllToTotal), color = "brown4", width = 0.1, alpha = 0.4, show.legend = F) +
+  theme_light() + 
+  ylab("# Phyllaries / Phyllaries + Disk Seeds") +
+  xlab("Shade Treatment (µmol of photons/m^2s)") +
+  ggtitle("Shade Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n122.0", "Structure\n107.0", "Low\n87.2", "Medium\n71.6", "High\n69.0")) +
+  ylim(-.005, .2) +
+  labs(caption = "No Significant Treatmne Effect")
+
+p_shade_propn_output
+
+```
+#9) Density Experiment: Ray seed proportion
+
+```{r}
+#### Ray Seed Proportion: Density to Control ####
+#' __Linear mixed model__
+lme_propn_dens <- lme(phyllToTotal~treatmentCat, 
+                      random = ~1|bin, 
+                      data = densityDat)
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_propn_dens, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_propn_dens)
+```
+
+*Residual variances look somewhat heteroskedastic, so I fit an unequal variances model*
+
+```{r}
+#' 
+#' __Linear mixed model with unequal variances__
+lme_propn_dens_uv <- lme(phyllToTotal~treatmentCat,
+                         data = densityDat,
+                         random = ~1|bin,
+                         weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_propn_dens_uv)
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_propn_dens_uv, ~ residuals(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_propn_dens_uv)
+```
+*The unequal variances model doesn't seem to change much, but if it is worth using than I will use it*
+```{r}
+anova(lme_propn_dens, lme_propn_dens_uv)
+```
+ *The model is not worth using. However, given that neither of these models successfully address the underlying heteroskedasticity, I will use the simpler model, or the equal variances model*
+```{r}
+anova(lme_propn_dens)
+```
+*no significant treatment effect; no pairwise comparisons necessary*
+```{r}
+#Final Answer
+summary_lme_propn_dens <- summary(lme_propn_dens)
+summary_lme_propn_dens
+```
+
+```{r}
+#' Plotting
+
+lme_propn_density_uv_noint <- lme(phyllToTotal~ 0 +treatmentCat,
+                                data = densityDat,
+                                random = ~1|bin,
+                                weights = varIdent(form = ~1|treatmentCat))
+
+summary_lme_propn_density_noint <- summary(lme_propn_density_uv_noint)
+
+propn_density_output_df <- data.frame(cat_mean_noint = summary_lme_propn_density_noint$tTable[,"Value"],
+                                        cat_se_noint = summary_lme_propn_density_noint$tTable[,"Std.Error"],
+                                        trt_cat = levels(densityDat$treatmentCat))
+
+p_dens_propn_output <- ggplot(propn_density_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin = cat_mean_noint - cat_se_noint, ymax = cat_mean_noint + cat_se_noint), color = "cyan4", width = .5, show.legend = F) +
+  geom_jitter(data = densityDat, aes(x = treatmentCat, y = phyllToTotal), color = "cyan4", width = 0.1, alpha = 0.4, show.legend = F) +
+  theme_light() + 
+  ylab("# Phyllaries / Phyllaries + Disk Seeds") +
+  xlab("Density Treatment (plants per cone)") +
+  ggtitle("Density Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n0", "Low\n1", "High\n2")) 
+
+
+p_dens_propn_output
+```
+#10) Resource Experiment: Dispersal Propensity
+
+```{r}
+#### Ray Seed Proportion: Resource to Control ####
+#' Get rid of NAs in the data
+resourceDat_propn <- resourceDat %>% filter(!is.na(phyllToTotal))
+
+#' __Linear mixed model__
+lme_propn_resource <- lme(phyllToTotal~treatmentCat, 
+                          random = ~1|bin,
+                          data = resourceDat_propn)
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_propn_resource, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_propn_resource)
+```
+*These dont look great; will see if an unequal variances model addresses the issue*
+
+```{r}
+#' 
+#' __Linear mixed model with unequal variances__
+lme_propn_resource_uv <- lme(phyllToTotal~treatmentCat,
+                             data = resourceDat_propn,
+                             random = ~1|bin,
+                             weights = varIdent(form = ~1|treatmentCat))
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_propn_resource_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_propn_resource_uv)
+```
+
+*Looks like the unequal variances model fixes the issues. But is it worth the extra spending of degrees of freedom?*
+
+```{r}
+anova(lme_propn_resource, lme_propn_resource_uv)
+```
+*yes!*
+
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_propn_resource_uv_noint <- lme(phyllToTotal ~ 0 + treatmentCat,
+                                   data = resourceDat_propn,
+                                   random = ~1|bin,
+                                   weights = varIdent(form = ~1|treatmentCat))
+
+summary(lme_propn_resource_uv_noint)
+
+#' _Final answer_
+summary_lme_propn_resource_uv <- summary(lme_propn_resource_uv)
+summary_lme_propn_resource_uv_noint <- summary(lme_propn_resource_uv_noint)
+summary_lme_propn_resource_uv
+```
+```{r}
+#Checking for overall treatment effect
+anova(lme_propn_resource_uv)
+```
+*There was no significant treatment effect; pairwise comparisons not necessary*
+```{r}
+#' Plot the model outcome
+propn_resource_output_df <- data.frame(cat_mean_noint = summary_lme_propn_resource_uv_noint$tTable[,"Value"],
+                                       cat_se_noint = summary_lme_propn_resource_uv_noint$tTable[,"Std.Error"],
+                                       trt_cat = levels(resourceDat$treatmentCat))
+propn_resource_output_df
+
+
+p_res_propn_output <- ggplot(propn_resource_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin = cat_mean_noint - cat_se_noint, ymax = cat_mean_noint + cat_se_noint), color = "goldenrod4", width = .5, show.legend = F) +
+  geom_jitter(data = resourceDat_propn, aes(x = treatmentCat, y = phyllToTotal), color = "goldenrod4", width = 0.1, alpha = 0.4, show.legend = F) +
+  theme_light() +
+  ylab("# Phyllaries / Phyllaries + Disk Seeds") +
+  xlab("Nutrient Addition Treatment (tbsp nutrients/gal. water)") +
+  ggtitle("Eutrophication Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n0", "Low\n0.5x", "Medium\n1x")) +
+  ylim(-.01, .5) +
+  labs(caption= "No Significant treatment effect")
+
+p_res_propn_output
+```
+#11) Shade Experiment: Inflorescence Height
+
+```{r}
+#' Get rid of NA's
+shadeDat_height <- shadeDat %>% filter( !is.na(focalFlowerHeight_cm))
+
+#' __Linear mixed model__
+lme_height_shade <- lme(focalFlowerHeight_cm~treatmentCat, 
+                        random = ~1|bin, 
+                        data = shadeDat_height)
+summary(lme_height_shade)
+```
+
+```{r}
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_height_shade, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_height_shade)
+```
+*These both look pretty good, but we'll see if an unequal variances model makes it any better*
+```{r}
+#' __Linear mixed model with unequal variances__
+lme_height_shade_uv <- lme(focalFlowerHeight_cm~treatmentCat,
+                           data = shadeDat_height,
+                           random = ~1|bin,
+                           weights = varIdent(form = ~1|treatmentCat))
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_height_shade_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_height_shade_uv)
+```
+*Looks like the uv model makes the residuals look better, but is it worth using?*
+```{r}
+anova(lme_height_shade, lme_height_shade_uv) 
+```
+*No*
+
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_height_shade_noint <- lme(focalFlowerHeight_cm~ 0 +treatmentCat,
+                              data = shadeDat_height,
+                              random = ~1|bin)
+
+summary(lme_height_shade_noint)
+
+#' _Final answer_
+summary_lme_height_shade <- summary(lme_height_shade)
+summary_lme_height_shade_noint <- summary(lme_height_shade_noint)
+summary_lme_height_shade
+```
+
+```{r}
+#Checking for treatment effect
+anova(lme_height_shade)
+```
+*There was no significant treatment effect; no pairwise comparisons needed*
+```{r}
+#' Plot the model outcome
+shade_height_output_df <- data.frame(cat_mean_noint = summary_lme_height_shade_noint$tTable[,"Value"],
+                                     cat_se_noint = summary_lme_height_shade_noint$tTable[,"Std.Error"],
+                                     trt_cat = levels(shadeDat$treatmentCat))
+
+shade_height_output_df
+
+p_shade_height_output <- ggplot(shade_height_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) +
+  geom_point() +
+  geom_errorbar(aes(ymin=cat_mean_noint-cat_se_noint, ymax=cat_mean_noint+cat_se_noint),color = "brown4", width = .5, show.legend = F) +
+  geom_jitter(data = shadeDat, aes(x = treatmentCat, y = focalFlowerHeight_cm),color = "brown4", width = 0.1, alpha = 0.4, show.legend = F) +
+  theme_light() +
+  ylab("Focal Flower Height (cm)") +
+  xlab("Shade Treatment (µmol of photons/m^2s)") +
+  ggtitle("Shade Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n122.0", "Structure\n107.0", "Low\n87.2", "Medium\n71.6", "High\n69.0")) +
+  ylim(-.5, 20) +
+  labs(caption = "No signficant treatment effect")
+
+p_shade_height_output
+```
+
+11) Density Experiment: Inflorescence Height
+
+```{r}
+#' Get rid of NA's
+densityDat_height <- densityDat %>% filter( !is.na(focalFlowerHeight_cm))
+
+#' __Linear mixed model__
+lme_height_density <- lme(focalFlowerHeight_cm~treatmentCat, 
+                          random = ~1|bin, 
+                          data = densityDat_height)
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_height_density, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_height_density)
+```
+*These both look pretty good. Will a uv model make it better, and be worth using?*
+```{r}
+
+#' __Linear mixed model with unequal variances__
+lme_height_density_uv <- lme(focalFlowerHeight_cm~treatmentCat,
+                             data = densityDat_height,
+                             random = ~1|bin,
+                             weights = varIdent(form = ~1|treatmentCat))
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_height_density_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_height_density_uv)
+```
+*The gains from using a uv model seem marginal, at best. My guess is model comparison will suggest not using the uv model*
+```{r}
+anova(lme_height_density, lme_height_density_uv) 
+```
+*Not worth using the uv model, as suspected*
+
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_height_density_noint <- lme(focalFlowerHeight_cm~ 0 +treatmentCat,
+                                data = densityDat_height,
+                                random = ~1|bin)
+
+#' _Final answer_
+summary_lme_height_density <- summary(lme_height_density)
+summary_lme_height_density_noint <- summary(lme_height_density_noint)
+summary_lme_height_density
+```
+
+```{r}
+#Checking for overall treatment effect
+anova(lme_height_density)
+```
+*No significant treatment effect; pairwise comparisons not neeeded*
+```{r}
+#' Plot the model outcome
+density_height_output_df <- data.frame(cat_mean_noint = summary_lme_height_density_noint$tTable[,"Value"],
+                                       cat_se_noint = summary_lme_height_density_noint$tTable[,"Std.Error"],
+                                       trt_cat = levels(densityDat$treatmentCat))
+
+density_height_output_df
+
+p_density_height_output <- ggplot(density_height_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin=cat_mean_noint-cat_se_noint, ymax=cat_mean_noint+cat_se_noint),color = "cyan4", width = .5, show.legend = F) +
+  geom_jitter(data = densityDat, aes(x = treatmentCat, y = focalFlowerHeight_cm),color = "cyan4", width = 0.1, alpha = 0.4, show.legend = F) +
+  theme_light() +
+  ylab("Focal Flower Height (cm)") +
+  xlab("Density Treatment") +
+  xlab("Density Treatment (plants per cone)") +
+  ggtitle("Density Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n0", "Low\n1", "High\n2")) + 
+  labs(caption = "No significant treatment effect")
+
+
+p_density_height_output
+```
+12) Resource Experiment: Inflorescence Height
+
+```{r}
+#' Get rid of NAs in the data
+resourceDat_height <- resourceDat %>% filter( focalFlowerHeight_cm > 0)
+
+#' __Linear mixed model__
+lme_height_resource <- lme(focalFlowerHeight_cm~treatmentCat, 
+                           random = ~1|bin,
+                           data = resourceDat_height)
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_height_resource, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_height_resource)
+```
+*These both look okay, but will a uv model be worth using?*
+#' 
+```{r}
+#' __Linear mixed model with unequal variances__
+lme_height_resource_uv <- lme(focalFlowerHeight_cm~treatmentCat,
+                              data = resourceDat_height,
+                              random = ~1|bin,
+                              weights = varIdent(form = ~1|treatmentCat))
+
+#' _Diagnostic plots_
+#' 
+#' qqplot to test for normality
+qqnorm(lme_height_resource_uv, ~ resid(., type = "p"), abline = c(0, 1))
+```
+
+```{r}
+#' Residuals vs fitted plot
+plot.lme(lme_height_resource_uv)
+```
+*Again, gains are marginal*
+```{r}
+#Comparing model fit
+anova(lme_height_resource, lme_height_resource_uv)
+```
+*The uv model is not worth using*
+```{r}
+#' Fit the same model without at intercept to get the standard errors of the means for each group (for plotting)
+lme_height_resource_noint <- lme(focalFlowerHeight_cm ~ 0 + treatmentCat,
+                                 data = resourceDat_height,
+                                 random = ~1|bin)
+
+#' _Final answer_
+summary_lme_height_resource <- summary(lme_height_resource)
+summary_lme_height_resource_noint <- summary(lme_height_resource_noint)
+```
+```{r}
+#Testing for treatment effect
+anova(lme_height_resource)
+```
+*There was a marginally significant treatment effect. Will conduct pairwise comparisons*
+```{r}
+summary_lme_height_resource
+```
+*It would appear that the medium treatment category differed signifcantly from the control, with a ~44% decrease in focal flower height (t(22) = -2.57, se = 1.42, p < 0.05). The low treatment category did not differ significantly from the control. However, given that the overall treatment effect was marginal, I cannot make any strong inferences based on this information*
+```{r}
+#Pairwise comparisons
+resDat_h <- resourceDat_height %>% filter( !is.na(focalFlowerHeight_cm))
+# High To All:
+res_h_medbase <- resDat_h %>% mutate(treatmentCat = relevel(treatmentCat, "Medium"))
+
+lme_h_res_medbase <- lme(focalFlowerHeight_cm~treatmentCat, 
+                         random = ~1|bin, 
+                         data = res_h_medbase)
+
+summary(lme_h_res_medbase)
+```
+*The low treatment category did not differ significantly from the medium treatment category*
+
+```{r}
+#' Plot the model outcome
+height_resource_output_df <- data.frame(cat_mean_noint = summary_lme_height_resource_noint$tTable[,"Value"],
+                                        cat_se_noint = summary_lme_height_resource_noint$tTable[,"Std.Error"],
+                                        trt_cat = levels(resourceDat$treatmentCat))
+
+height_resource_output_df
+
+p_res_height_output <- ggplot(height_resource_output_df, aes(x=factor(trt_cat, levels = labelOrders), y=cat_mean_noint)) + 
+  geom_point() +
+  geom_errorbar(aes(ymin = cat_mean_noint - cat_se_noint, ymax = cat_mean_noint + cat_se_noint), color = "goldenrod4", width = .5, show.legend = F) +
+  geom_jitter(data = resourceDat_height, aes(x = treatmentCat, y = focalFlowerHeight_cm), color = "goldenrod4", width = 0.1, alpha = 0.4, show.legend = F) +
+  theme_light() +
+  ylab("Focal Flower Height (cm)") +
+  xlab("Nutrient Addition Treatment (tbsp nutrients/gal. water)") +
+  ggtitle("Eutrophication Experiment") +
+  theme(plot.title = element_text(hjust = 0.5, vjust = 0.3)) +
+  scale_x_discrete(labels = c("Control\n0", "Low\n0.5x", "Medium\n1x")) +
+  labs(caption = "Marginally Significant Treatment Effect (p = 0.53)")
+
+p_res_height_output
+```
+
+Final Plots
+```{r}
+#### Final Plots ####
+
+#' Biomass Plot
+
+biomassGrid <- grid.arrange(p_shade_mass_output, p_density_mass_output, p_res_mass_output, nrow = 1, top = "Biomass Response to Treatment Effect by Experiment")
+
+```
+```{r}
+
+```
+
+```{r}
+propnHeightGrid <- grid.arrange(p_shade_propn_output,  p_dens_propn_output, p_res_propn_output, p_shade_height_output, p_density_height_output, p_res_height_output, nrow = 2, ncol = 3, top = "Dispersal Propensity and Inflorescence Height Response to Treatment Effect by Experiment")
+```
