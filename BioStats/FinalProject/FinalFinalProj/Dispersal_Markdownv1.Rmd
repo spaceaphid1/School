@@ -54,14 +54,12 @@ library(wesanderson)
 
 ```{r}
 #'Loading the Data
-dat <- read_csv("/Users/jacksonanderson/Desktop/DisperalDataOrigFiles/DispersalMasterData_with_weight.csv")
+dat <- read_csv("/Users/jacksonanderson/Library/Mobile Documents/com~apple~CloudDocs/HomeBase/DisperalDataOrigFiles/DispersalMasterData_with_weight.csv")
 
 #'Writing conditional to check for NA's in either disk seed count column and filtering accordingly
 d2NA <- which(is.na(dat$diskSeedCount2) & !is.na(dat$diskSeedCount1))
 d1NA <- which(!is.na(dat$diskSeedCount2) & is.na(dat$diskSeedCount1))
 view(dat[d2NA,]) #no cases where d1 is NA and d2 is not, so subset the master data where disk seed count 2 is an NA and disk seed count 1 is not
-
-
 
 #'#### Data Cleaning
 #' 
